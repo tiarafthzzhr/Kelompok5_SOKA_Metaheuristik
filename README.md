@@ -282,7 +282,7 @@ Pembagian per VM memakai **bobot 0.5/0.5, run ketiga, seed 1002**. Tabel metrik 
 
 ### 11.1. Simulasi 100 task
 
-![Pembagian task ABC dan Cuckoo Search untuk 100 task](WhatsApp%20Image%202026-11-16%20at%2010.30.58.jpeg)
+![Pembagian task ABC dan Cuckoo Search untuk 100 task](docs/images/task-scheduling-100.jpeg)
 
 **Gambar 1.** Hasil penjadwalan 100 task menggunakan ABC dan Cuckoo Search. Tabel menunjukkan jumlah task, beban, dan contoh ID task pada setiap VM. Kedua algoritma menyelesaikan **100/100 task** dan lolos validasi CloudSim. Tabel bagian bawah membandingkan makespan, utilisasi, dan waiting time.
 
@@ -290,7 +290,7 @@ Daftar ID task lengkap: [ABC 100 task](task-distribution/100-ABC-balanced-run3.t
 
 ### 11.2. Simulasi 200 task
 
-![Pembagian task ABC dan Cuckoo Search untuk 200 task](WhatsApp%20Image%202026-11-16%20at%2010.31.17.jpeg)
+![Pembagian task ABC dan Cuckoo Search untuk 200 task](docs/images/task-scheduling-200.jpeg)
 
 **Gambar 2.** Hasil penjadwalan 200 task menggunakan ABC dan Cuckoo Search. Tabel menunjukkan jumlah task, beban, dan contoh ID task pada setiap VM. Kedua algoritma menyelesaikan **200/200 task** dan lolos validasi CloudSim. Tabel bagian bawah membandingkan makespan, utilisasi, dan waiting time.
 
@@ -298,7 +298,7 @@ Daftar ID task lengkap: [ABC 200 task](task-distribution/200-ABC-balanced-run3.t
 
 ### 11.3. Simulasi 300 task
 
-![Pembagian task ABC dan Cuckoo Search untuk 300 task](WhatsApp%20Image%202026-11-16%20at%2010.31.35.jpeg)
+![Pembagian task ABC dan Cuckoo Search untuk 300 task](docs/images/task-scheduling-300.jpeg)
 
 **Gambar 3.** Hasil penjadwalan 300 task menggunakan ABC dan Cuckoo Search. Tabel menunjukkan jumlah task, beban, dan contoh ID task pada setiap VM. Kedua algoritma menyelesaikan **300/300 task** dan lolos validasi CloudSim. Tabel bagian bawah membandingkan makespan, utilisasi, dan waiting time.
 
@@ -306,7 +306,7 @@ Daftar ID task lengkap: [ABC 300 task](task-distribution/300-ABC-balanced-run3.t
 
 ### 11.4. Simulasi 400 task
 
-![Pembagian task ABC dan Cuckoo Search untuk 400 task](WhatsApp%20Image%202026-11-16%20at%2010.31.51.jpeg)
+![Pembagian task ABC dan Cuckoo Search untuk 400 task](docs/images/task-scheduling-400.jpeg)
 
 **Gambar 4.** Hasil penjadwalan 400 task menggunakan ABC dan Cuckoo Search. Tabel menunjukkan jumlah task, beban, dan contoh ID task pada setiap VM. Kedua algoritma menyelesaikan **400/400 task** dan lolos validasi CloudSim. Tabel bagian bawah membandingkan makespan, utilisasi, dan waiting time.
 
@@ -314,7 +314,7 @@ Daftar ID task lengkap: [ABC 400 task](task-distribution/400-ABC-balanced-run3.t
 
 ### 11.5. Simulasi 500 task
 
-![Pembagian task ABC dan Cuckoo Search untuk 500 task](WhatsApp%20Image%202026-11-16%20at%2010.33.03.jpeg)
+![Pembagian task ABC dan Cuckoo Search untuk 500 task](docs/images/task-scheduling-500.jpeg)
 
 **Gambar 5.** Hasil penjadwalan 500 task menggunakan ABC dan Cuckoo Search. Tabel menunjukkan jumlah task, beban, dan contoh ID task pada setiap VM. Kedua algoritma menyelesaikan **500/500 task** dan lolos validasi CloudSim. Tabel bagian bawah membandingkan makespan, utilisasi, dan waiting time.
 
