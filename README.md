@@ -16,7 +16,7 @@ Kode utama: [Main.java](src/main/java/soka/Main.java). Kode algoritma: [ABC.java
 8. [Membaca output dan pembagian task](#8-membaca-output-dan-pembagian-task)
 9. [Memeriksa file hasil dan validasi](#9-memeriksa-file-hasil-dan-validasi)
 10. [Hasil eksperimen 100-500 task](#10-hasil-eksperimen-100-500-task)
-11. [Urutan dokumentasi dan screenshot](#11-urutan-dokumentasi-dan-screenshot)
+11. [Dokumentasi hasil simulasi 100-500 task](#11-dokumentasi-hasil-simulasi-100-500-task)
 12. [Penanganan kendala](#12-penanganan-kendala)
 
 ## 1. Tujuan
@@ -233,23 +233,51 @@ Contoh hasil **500 task, bobot 0.5/0.5**, rata-rata +/- standar deviasi sampel d
 
 Hasil aktif telah menghasilkan 90 run, 30 ringkasan, dan 10 validasi yang lolos. Pada contoh ini CS memiliki makespan rata-rata lebih rendah; tiga pengulangan belum cukup untuk menyatakan keunggulan universal. Eksperimen tidak membuktikan solusi optimum global atau mengukur utilisasi CPU hardware. Populasi dan iterasi yang sama tidak menjamin jumlah evaluasi fitness sama.
 
-## 11. Urutan dokumentasi dan screenshot
+## 11. Dokumentasi hasil simulasi 100-500 task
 
-Dokumentasikan proses mengikuti urutan simulasi, lalu beri keterangan pada setiap gambar:
+Dokumentasi berikut berasal dari screenshot eksekusi ABC dan Cuckoo Search. Setiap gambar menampilkan pembagian task ke 4 host dan 8 VM, validasi CloudSim, serta perbandingan metrik.
 
-| Urutan | Bukti yang ditampilkan | Keterangan gambar |
-|---:|---|---|
-| 1 | Perintah PowerShell dan konfigurasi awal | Simulasi memakai 1 datacenter, 4 host, 8 VM, dan dataset 100-500 task |
-| 2 | Tabel ABC untuk 100 task dan validasinya | Pembagian task ABC per VM, bobot seimbang, run ketiga |
-| 3 | Tabel CS untuk 100 task dan validasinya | Pembagian task CS per VM, bobot seimbang, run ketiga |
-| 4 | Tabel perbandingan untuk 100 task | Metrik rata-rata tiga run pada ketiga bobot |
-| 5 | Bagian 200, 300, dan 400 task | Eksperimen berlanjut sesuai kenaikan jumlah task; dapat memakai satu gambar per ukuran |
-| 6 | Bagian 500 task dan pesan `SELESAI` | Ukuran maksimum dan bukti 90 run, 30 ringkasan, 10 validasi lolos |
-| 7 | File `task-distribution/100-ABC-balanced-run3.txt` | Daftar ID task lengkap beserta host dan VM penerimanya |
+Pembagian per VM memakai **bobot 0.5/0.5, run ketiga, seed 1002**. Tabel metrik di bagian bawah gambar menunjukkan **rata-rata +/- standar deviasi tiga run** untuk masing-masing pasangan bobot. Karena itu, makespan pada satu pemetaan dapat berbeda dari makespan rata-rata.
 
-Ambil screenshot dari terminal atau log run yang sama, lalu letakkan dalam laporan sesuai nomor di atas. CSV pendukung harus berasal dari run tersebut. README ini menyediakan cuplikan teks hasil nyata; screenshot belum ditambahkan.
+### 11.1. Simulasi 100 task
 
-Hasil lama 100-1000 task atau topologi 4 VM tersimpan terpisah di `archive/` lokal dan tidak digunakan dalam dokumentasi hasil aktif.
+![Pembagian task ABC dan Cuckoo Search untuk 100 task](docs/images/task-scheduling-100.jpeg)
+
+**Gambar 1.** Hasil penjadwalan 100 task menggunakan ABC dan Cuckoo Search. Tabel menunjukkan jumlah task, beban, dan contoh ID task pada setiap VM. Kedua algoritma menyelesaikan **100/100 task** dan lolos validasi CloudSim. Tabel bagian bawah membandingkan makespan, utilisasi, dan waiting time.
+
+Daftar ID task lengkap: [ABC 100 task](task-distribution/100-ABC-balanced-run3.txt) dan [CS 100 task](task-distribution/100-CS-balanced-run3.txt).
+
+### 11.2. Simulasi 200 task
+
+![Pembagian task ABC dan Cuckoo Search untuk 200 task](docs/images/task-scheduling-200.jpeg)
+
+**Gambar 2.** Hasil penjadwalan 200 task menggunakan ABC dan Cuckoo Search. Tabel menunjukkan jumlah task, beban, dan contoh ID task pada setiap VM. Kedua algoritma menyelesaikan **200/200 task** dan lolos validasi CloudSim. Tabel bagian bawah membandingkan makespan, utilisasi, dan waiting time.
+
+Daftar ID task lengkap: [ABC 200 task](task-distribution/200-ABC-balanced-run3.txt) dan [CS 200 task](task-distribution/200-CS-balanced-run3.txt).
+
+### 11.3. Simulasi 300 task
+
+![Pembagian task ABC dan Cuckoo Search untuk 300 task](docs/images/task-scheduling-300.jpeg)
+
+**Gambar 3.** Hasil penjadwalan 300 task menggunakan ABC dan Cuckoo Search. Tabel menunjukkan jumlah task, beban, dan contoh ID task pada setiap VM. Kedua algoritma menyelesaikan **300/300 task** dan lolos validasi CloudSim. Tabel bagian bawah membandingkan makespan, utilisasi, dan waiting time.
+
+Daftar ID task lengkap: [ABC 300 task](task-distribution/300-ABC-balanced-run3.txt) dan [CS 300 task](task-distribution/300-CS-balanced-run3.txt).
+
+### 11.4. Simulasi 400 task
+
+![Pembagian task ABC dan Cuckoo Search untuk 400 task](docs/images/task-scheduling-400.jpeg)
+
+**Gambar 4.** Hasil penjadwalan 400 task menggunakan ABC dan Cuckoo Search. Tabel menunjukkan jumlah task, beban, dan contoh ID task pada setiap VM. Kedua algoritma menyelesaikan **400/400 task** dan lolos validasi CloudSim. Tabel bagian bawah membandingkan makespan, utilisasi, dan waiting time.
+
+Daftar ID task lengkap: [ABC 400 task](task-distribution/400-ABC-balanced-run3.txt) dan [CS 400 task](task-distribution/400-CS-balanced-run3.txt).
+
+### 11.5. Simulasi 500 task
+
+![Pembagian task ABC dan Cuckoo Search untuk 500 task](docs/images/task-scheduling-500.jpeg)
+
+**Gambar 5.** Hasil penjadwalan 500 task menggunakan ABC dan Cuckoo Search. Tabel menunjukkan jumlah task, beban, dan contoh ID task pada setiap VM. Kedua algoritma menyelesaikan **500/500 task** dan lolos validasi CloudSim. Tabel bagian bawah membandingkan makespan, utilisasi, dan waiting time.
+
+Daftar ID task lengkap: [ABC 500 task](task-distribution/500-ABC-balanced-run3.txt) dan [CS 500 task](task-distribution/500-CS-balanced-run3.txt).
 
 ## 12. Penanganan kendala
 
