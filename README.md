@@ -37,6 +37,42 @@ Setiap host mempunyai 2 PE x 1000 MIPS dan RAM 16384 MB. VM 500 MIPS mempunyai R
 
 Alur program: baca dataset GoCJ -> cari pemetaan dengan ABC/CS -> hitung metrik -> validasi pemetaan terpilih di CloudSim -> tampilkan pembagian dan simpan hasil.
 
+### Visualisasi alur eksperimen
+
+Diagram berikut merangkum urutan simulasi. **ABC dan CS dijalankan sebagai dua algoritma mandiri** dengan dataset dan konfigurasi VM yang sama.
+
+```mermaid
+flowchart TD
+    START([Mulai eksperimen]) --> CONFIG["1. Siapkan konfigurasi cloud<br/>1 datacenter - 4 host - 8 VM"]
+    CONFIG --> DATA["2. Baca dataset GoCJ<br/>100 ? 200 ? 300 ? 400 ? 500 task"]
+    DATA --> SETUP["3. Untuk setiap ukuran dataset<br/>Uji bobot 0.5/0.5, 0.7/0.3, 0.3/0.7"]
+    SETUP --> ABC["4. Jalankan Artificial Bee Colony<br/>3 run - seed 1000, 1001, 1002"]
+    ABC --> ABCMAP["Pemetaan ABC: task ? VM ? host<br/>Hitung metrik dan simpan penempatan"]
+    ABCMAP --> ABCVAL["Validasi ABC di CloudSim<br/>Hanya bobot 0.5/0.5, run ketiga"]
+    ABCVAL --> CS["5. Jalankan Cuckoo Search<br/>3 run - seed 1000, 1001, 1002"]
+    CS --> CSMAP["Pemetaan CS: task ? VM ? host<br/>Hitung metrik dan simpan penempatan"]
+    CSMAP --> CSVAL["Validasi CS di CloudSim<br/>Hanya bobot 0.5/0.5, run ketiga"]
+    CSVAL --> REPEAT["6. Lanjutkan bobot dan ukuran berikutnya<br/>Urutan ukuran: 100, 200, 300, 400, 500"]
+    REPEAT --> OUTPUT["7. Bandingkan ABC dan CS<br/>Makespan - Utilisasi - Waiting time"]
+    OUTPUT --> FILES["8. Simpan hasil dan dokumentasi<br/>CSV - pembagian per VM - log - screenshot"]
+    FILES --> END([Selesai: 90 run - 30 ringkasan - 10 validasi])
+
+    classDef startEnd fill:#0f172a,color:#ffffff,stroke:#0f172a;
+    classDef setup fill:#e0f2fe,color:#0c4a6e,stroke:#0284c7;
+    classDef abc fill:#dcfce7,color:#14532d,stroke:#16a34a;
+    classDef cs fill:#fef3c7,color:#78350f,stroke:#d97706;
+    classDef output fill:#ede9fe,color:#4c1d95,stroke:#7c3aed;
+    class START,END startEnd;
+    class CONFIG,DATA,SETUP setup;
+    class ABC,ABCMAP,ABCVAL abc;
+    class CS,CSMAP,CSVAL cs;
+    class REPEAT,OUTPUT,FILES output;
+```
+
+**Cara membaca:** untuk setiap ukuran task, program menguji tiga bobot. Pada setiap bobot, ABC dijalankan tiga kali, dilanjutkan CS tiga kali. Setelah itu program melanjutkan bobot berikutnya, lalu ukuran dataset berikutnya. Kotak validasi hanya dijalankan untuk pemetaan run ketiga pada bobot seimbang; tidak ada validasi CloudSim tambahan pada bobot lain. Setiap algoritma menggunakan populasi 30 dan 100 iterasi.
+
+Penjelasan tahap demi tahap tersedia di [Alur eksperimen simulasi](docs/ALUR-EKSPERIMEN.md).
+
 ## 3. Konfigurasi eksperimen
 
 | Parameter | Nilai |
@@ -97,7 +133,7 @@ C:\Users\TIARA F.A\soka-taskscheduling1\.tools\apache-maven-3.9.9
 C:\Users\TIARA F.A\soka-taskscheduling1\.vscode\maven-settings.xml
 ```
 
-Sediakan folder `GoCJ Google Cloud Jobs Dataset` di folder utama repository dengan file berikut:
+Dataset beban task yang disertakan untuk repository tersedia di [GoCJ Google Cloud Jobs Dataset](GoCJ%20Google%20Cloud%20Jobs%20Dataset/README.md). **Dataset adalah panjang task dalam MI; datacenter, host, dan VM didefinisikan dalam kode CloudEnv.java.** Lima file yang dipakai:
 
 ```text
 GoCJ_Dataset_100.txt
@@ -107,7 +143,7 @@ GoCJ_Dataset_400.txt
 GoCJ_Dataset_500.txt
 ```
 
-Jika folder dataset belum tersedia, salin sekali dari proyek sebelumnya:
+Jika folder dataset belum tersedia pada salinan lokal, salin sekali dari proyek sebelumnya:
 
 ```powershell
 Copy-Item "C:\Users\TIARA F.A\soka-taskscheduling1\GoCJ Google Cloud Jobs Dataset" `
