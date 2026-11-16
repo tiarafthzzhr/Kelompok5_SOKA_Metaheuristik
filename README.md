@@ -2,11 +2,10 @@
 
 Kode algoritma: [ABC.java](src/main/java/soka/algo/ABC.java) dan [CuckooSearch.java](src/main/java/soka/algo/CuckooSearch.java). Entry point: [Main.java](src/main/java/soka/Main.java).
 
-Paket tugas Kelompok 5 khusus **Artificial Bee Colony (ABC)** dan **Cuckoo Search (CS)**, dipisahkan dari eksperimen sebelumnya. Source paket ini hanya memuat dua metaheuristik mandiri; inisialisasi ABC menggunakan populasi acak. Tidak ada Round Robin, RR-ABC, atau GA-GWO dalam paket ini.
 
 ## Tujuan
 
-Mengimplementasikan dan membandingkan ABC serta CS untuk memetakan task ke VM heterogen. Optimasi mencari makespan rendah dan utilisasi tinggi. Waktu tunggu dilaporkan sebagai metrik tambahan dan tidak dimasukkan langsung ke fungsi fitness.
+Mengimplementasikan dan membandingkan ABC serta CS untuk memetakan task ke VM heterogen. Optimasi mencari makespan rendah dan utilisasi tinggi.
 
 ## Arsitektur dan alur sistem
 
