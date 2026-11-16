@@ -1,8 +1,12 @@
 # Implementasi Metaheuristik untuk Task Scheduling Cloud
 
+Kode algoritma: [ABC.java](src/main/java/soka/algo/ABC.java) dan [CuckooSearch.java](src/main/java/soka/algo/CuckooSearch.java). Entry point: [Main.java](src/main/java/soka/Main.java).
+
+Paket tugas Kelompok 5 khusus **Artificial Bee Colony (ABC)** dan **Cuckoo Search (CS)**, dipisahkan dari eksperimen sebelumnya. Source paket ini hanya memuat dua metaheuristik mandiri; inisialisasi ABC menggunakan populasi acak. Tidak ada Round Robin, RR-ABC, atau GA-GWO dalam paket ini.
+
 ## Tujuan
 
-Mengimplementasikan dan membandingkan ABC serta CS untuk memetakan task ke VM heterogen. Optimasi mencari makespan rendah dan utilisasi tinggi. 
+Mengimplementasikan dan membandingkan ABC serta CS untuk memetakan task ke VM heterogen. Optimasi mencari makespan rendah dan utilisasi tinggi. Waktu tunggu dilaporkan sebagai metrik tambahan dan tidak dimasukkan langsung ke fungsi fitness.
 
 ## Arsitektur dan alur sistem
 
@@ -35,33 +39,25 @@ Pencarian solusi dilakukan oleh kode algoritma Java, kemudian pemetaan terpilih 
 
 ## Menjalankan
 
-Dari PowerShell di root repositori:
+Kode Java berada langsung di folder `src/main/java/soka` repository ini.
+
+Siapkan JDK 21, Maven, dan dependensi CloudSim 7.0.1 di repositori Maven lokal. Dari folder utama repository jalankan:
 
 ```powershell
-.\run-metaheuristik.ps1
+mvn clean compile exec:java '-Dexec.mainClass=soka.Main'
 ```
 
-Script memakai JDK 21, Maven, dan dependensi CloudSim 7.0.1 yang sudah tersedia di `.tools` pada workspace ini. Script melakukan clean compile sebelum menjalankan simulasi. Hasil run sebelumnya pada folder paket ini akan ditimpa.
-
-Untuk mesin lain, siapkan JDK 21 dan Maven serta instal dependensi CloudSim 7.0.1 ke repositori Maven lokal. Pertahankan folder dataset GoCJ di sebelah folder paket ini, lalu dari folder paket jalankan:
+Dataset dibaca dari `GoCJ Google Cloud Jobs Dataset/GoCJ_Dataset_<jumlah>.txt` di folder utama repository. Jika dataset tidak disertakan saat push, sediakan folder tersebut secara lokal sebelum menjalankan. Eksekusi menimpa `results.csv` dan `summary.csv`. Untuk menyimpan log terminal:
 
 ```powershell
-mvn compile exec:java '-Dexec.mainClass=soka.Main'
+mvn exec:java '-Dexec.mainClass=soka.Main' 2>&1 | Tee-Object simulation-output.txt
 ```
-
-Untuk menjalankan dari PowerShell apabila eksekusi script diblokir:
-
-```powershell
-powershell -ExecutionPolicy Bypass -File .\run-metaheuristik.ps1
-```
-
-Sebelum menjalankan, pastikan tersedia folder `.tools/jdk-21.0.12.1+1`, `.tools/apache-maven-3.9.9`, `.tools/m2`, file `.vscode/maven-settings.xml`, dan sepuluh file dataset yang diperlukan. Script menggunakan lokasi tersebut secara eksplisit. Perintah Maven manual tidak otomatis menyimpan log melalui `Tee-Object`; penyimpanan `simulation-output.txt` dilakukan oleh script PowerShell.
 
 ## Konfigurasi eksperimen
 
 - Simulasi CloudSim: 1 datacenter, 2 host, 2 VM per host (4 VM).
 - Setiap host: 2 PE x 1000 MIPS, RAM 16384 MB. VM per host: 500 MIPS/512 MB dan 1000 MIPS/1024 MB.
-- Dataset: `../GoCJ Google Cloud Jobs Dataset/GoCJ_Dataset_<jumlah>.txt`, 100 hingga 1000 task dengan kenaikan 100.
+- Dataset: `GoCJ Google Cloud Jobs Dataset/GoCJ_Dataset_<jumlah>.txt`, 100 hingga 1000 task dengan kenaikan 100.
 - Task independen, tersedia sejak awal, non-preemptive, antrean serial per VM (SpaceShared).
 - Populasi 30, iterasi 100; ABC limit 20; CS probabilitas abandonment 0.25.
 - Tiga pasangan bobot (makespan, utilisasi): (0.5, 0.5), (0.7, 0.3), (0.3, 0.7).
@@ -172,7 +168,7 @@ Jika jumlah pengulangan atau urutan bobot diubah, sesuaikan pula tulisan log ten
 |---|---|
 | Java atau Maven tidak ditemukan | Periksa lokasi `.tools` yang ditentukan script atau gunakan instalasi lokal melalui perintah Maven manual |
 | Dependensi CloudSim tidak ditemukan | Pastikan artefak CloudSim 7.0.1 tersedia di repositori Maven yang digunakan |
-| File dataset tidak ditemukan | Jalankan Maven dari folder paket; pastikan folder GoCJ berada di direktori induknya |
+| File dataset tidak ditemukan | Jalankan Maven dari folder utama repository; pastikan folder GoCJ tersedia di sana |
 | `Jumlah dataset tidak sesuai` | Pastikan jumlah baris berisi angka sesuai ukuran pada nama file |
 | `Validasi CloudSim gagal` | Periksa jumlah task selesai dan perbandingan makespan di log; jangan gunakan run yang gagal sebagai hasil akhir |
 
@@ -183,12 +179,12 @@ Eksperimen menggunakan task statis dan independen, tanpa dependensi antar-task, 
 ## Berkas
 
 - `src/main/java/soka/Main.java`: eksperimen, CSV, tabel terminal, validasi.
-- `src/main/java/soka/algo/ABC.java`: metaheuristik ABC .
-- `src/main/java/soka/algo/CuckooSearch.java`: metaheuristik CS .
+- `src/main/java/soka/algo/ABC.java`: metaheuristik ABC mandiri.
+- `src/main/java/soka/algo/CuckooSearch.java`: metaheuristik CS mandiri.
 - `src/main/java/soka/CloudEnv.java`: topologi dan simulasi CloudSim.
 - `src/main/java/soka/Metrics.java`: fungsi tujuan dan metrik.
 - `results.csv`: hasil seluruh run.
 - `summary.csv`: rata-rata dan standar deviasi sampel.
 - `simulation-output.txt`: log eksekusi dan validasi CloudSim.
 
-Paket tetap memakai dataset GoCJ bersama di root repositori. Untuk mengumpulkan atau memindahkan tugas, sertakan folder dataset dan sesuaikan lokasi tool pada script bila diperlukan.
+Dataset dibaca dari folder GoCJ di root repository. Folder arsip `TASK_SCHEDULING_METAHEURISTIK_SOKA_KEL5` yang sudah ada sebelumnya tidak digunakan oleh perintah Maven dari root.
