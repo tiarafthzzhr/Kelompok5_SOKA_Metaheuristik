@@ -1,6 +1,6 @@
 # Task Scheduling Cloud dengan Metaheuristik
 
-Implementasi **Artificial Bee Colony (ABC)** dan **Cuckoo Search (CS)** untuk penjadwalan task menggunakan CloudSim 7.0.1. Demo ini menggunakan hasil **100, 200, 300, 400, dan 500 task yang sudah dijalankan**, dengan **1 datacenter, 4 host, dan 8 VM**.
+Implementasi **Artificial Bee Colony (ABC)** dan **Cuckoo Search (CS)** untuk penjadwalan task menggunakan CloudSim 7.0.1. Dokumentasi ini mencakup hasil **100 sampai 1000 task dengan kenaikan 100 yang sudah dijalankan**, dengan **1 datacenter, 4 host, dan 8 VM**.
 
 Kode utama: [Main.java](src/main/java/soka/Main.java). Kode algoritma: [ABC.java](src/main/java/soka/algo/ABC.java) dan [CuckooSearch.java](src/main/java/soka/algo/CuckooSearch.java).
 
@@ -15,8 +15,8 @@ Kode utama: [Main.java](src/main/java/soka/Main.java). Kode algoritma: [ABC.java
 7. [Menjalankan simulasi](#7-menjalankan-simulasi)
 8. [Membaca output dan pembagian task](#8-membaca-output-dan-pembagian-task)
 9. [Memeriksa file hasil dan validasi](#9-memeriksa-file-hasil-dan-validasi)
-10. [Hasil eksperimen 100-500 task](#10-hasil-eksperimen-100-500-task)
-11. [Dokumentasi hasil simulasi 100-500 task](#11-dokumentasi-hasil-simulasi-100-500-task)
+10. [Hasil eksperimen 100-1000 task](#10-hasil-eksperimen-100-1000-task)
+11. [Dokumentasi hasil simulasi 100-1000 task](#11-dokumentasi-hasil-simulasi-100-1000-task)
 12. [Penanganan kendala](#12-penanganan-kendala)
 
 ## 1. Tujuan
@@ -44,7 +44,7 @@ Diagram berikut merangkum urutan simulasi. **ABC dan CS dijalankan sebagai dua a
 ```mermaid
 flowchart TD
     START([Mulai eksperimen]) --> CONFIG["1. Siapkan konfigurasi cloud<br/>1 datacenter - 4 host - 8 VM"]
-    CONFIG --> DATA["2. Baca dataset GoCJ<br/>100, 200, 300, 400, 500 task"]
+    CONFIG --> DATA["2. Baca dataset GoCJ<br/>100, 200, 300, ..., 1000 task"]
     DATA --> SETUP["3. Untuk setiap ukuran dataset<br/>Uji bobot 0.5/0.5, 0.7/0.3, 0.3/0.7"]
     SETUP --> ABC["4. Jalankan Artificial Bee Colony<br/>3 run - seed 1000, 1001, 1002"]
     ABC --> ABCMAP["Pemetaan ABC: task ke VM, VM pada host<br/>Hitung metrik dan simpan penempatan"]
@@ -52,10 +52,10 @@ flowchart TD
     ABCVAL --> CS["5. Jalankan Cuckoo Search<br/>3 run - seed 1000, 1001, 1002"]
     CS --> CSMAP["Pemetaan CS: task ke VM, VM pada host<br/>Hitung metrik dan simpan penempatan"]
     CSMAP --> CSVAL["Validasi CS di CloudSim<br/>Hanya bobot 0.5/0.5, run ketiga"]
-    CSVAL --> REPEAT["6. Lanjutkan bobot dan ukuran berikutnya<br/>Urutan ukuran: 100 sampai 500, kenaikan 100"]
+    CSVAL --> REPEAT["6. Lanjutkan bobot dan ukuran berikutnya<br/>Urutan ukuran: 100 sampai 1000, kenaikan 100"]
     REPEAT --> OUTPUT["7. Bandingkan ABC dan CS<br/>Makespan - Utilisasi - Waiting time"]
     OUTPUT --> FILES["8. Simpan hasil dan dokumentasi<br/>CSV - pembagian per VM - log - screenshot"]
-    FILES --> END([Selesai: 90 run - 30 ringkasan - 10 validasi])
+    FILES --> END([Rekap: 180 run - 60 ringkasan - 20 validasi])
 
     classDef startEnd fill:#0f172a,color:#ffffff,stroke:#0f172a;
     classDef setup fill:#e0f2fe,color:#0c4a6e,stroke:#0284c7;
@@ -71,7 +71,7 @@ flowchart TD
 
 **Cara membaca:** untuk setiap ukuran task, program menguji tiga bobot. Pada setiap bobot, ABC dijalankan tiga kali, dilanjutkan CS tiga kali. Setelah itu program melanjutkan bobot berikutnya, lalu ukuran dataset berikutnya. Kotak validasi hanya dijalankan untuk pemetaan run ketiga pada bobot seimbang; tidak ada validasi CloudSim tambahan pada bobot lain. Setiap algoritma menggunakan populasi 30 dan 100 iterasi.
 
-Demo memakai lima ukuran dataset, dua algoritma, tiga bobot, dan tiga pengulangan: **90 run, 30 ringkasan, 10 validasi CloudSim, dan 27.000 penempatan task**. Seluruh hasil tersedia di folder utama repository.
+Hasil lengkap sudah dijalankan dalam dua tahap: 100-500 dan 500-1000. Rekap memakai 100-400 dari tahap awal dan 500-1000 dari lanjutan, tanpa duplikasi 500 task: **180 run, 60 ringkasan, 20 validasi terpilih, 99.000 penempatan**. Rekap ada di `experiments/100-1000/`.
 
 Penjelasan tahap demi tahap tersedia di [Alur eksperimen simulasi](docs/ALUR-EKSPERIMEN.md).
 
@@ -80,7 +80,7 @@ Penjelasan tahap demi tahap tersedia di [Alur eksperimen simulasi](docs/ALUR-EKS
 | Parameter | Nilai |
 |---|---|
 | Algoritma | ABC dan Cuckoo Search |
-| Ukuran dataset | 100, 200, 300, 400, 500 task |
+| Ukuran dataset | 100, 200, 300, ..., 1000 task |
 | Model task | Statis, independen, non-preemptive |
 | Penjadwalan pada VM | SpaceShared, antrean serial |
 | Populasi / iterasi | 30 / 100 |
@@ -88,8 +88,8 @@ Penjelasan tahap demi tahap tersedia di [Alur eksperimen simulasi](docs/ALUR-EKS
 | Parameter CS | pa = 0.25; beta = 1.5; sigma = 0.6966 |
 | Bobot makespan / utilisasi | 0.5/0.5, 0.7/0.3, 0.3/0.7 |
 | Pengulangan | 3; seed 1000, 1001, 1002 |
-| Total run | 5 ukuran x 2 algoritma x 3 bobot x 3 run = 90 |
-| Ringkasan / validasi | 30 ringkasan / 10 validasi CloudSim |
+| Total run rekap | 10 ukuran x 2 algoritma x 3 bobot x 3 run = 180 |
+| Ringkasan / validasi rekap | 60 ringkasan / 20 validasi CloudSim |
 
 ## 4. Cara kerja algoritma dan metrik
 
@@ -135,7 +135,7 @@ C:\Users\TIARA F.A\soka-taskscheduling1\.tools\apache-maven-3.9.9
 C:\Users\TIARA F.A\soka-taskscheduling1\.vscode\maven-settings.xml
 ```
 
-Dataset beban task yang disertakan untuk repository tersedia di [GoCJ Google Cloud Jobs Dataset](../GoCJ%20Google%20Cloud%20Jobs%20Dataset/). **Dataset adalah panjang task dalam MI; datacenter, host, dan VM didefinisikan dalam kode CloudEnv.java.** Lima file yang dipakai untuk demo:
+Dataset beban task yang disertakan untuk repository tersedia di [GoCJ Google Cloud Jobs Dataset](GoCJ%20Google%20Cloud%20Jobs%20Dataset/README.md). **Dataset adalah panjang task dalam MI; datacenter, host, dan VM didefinisikan dalam kode CloudEnv.java.** Sepuluh file yang dipakai untuk dokumentasi lengkap:
 
 ```text
 GoCJ_Dataset_100.txt
@@ -143,6 +143,11 @@ GoCJ_Dataset_200.txt
 GoCJ_Dataset_300.txt
 GoCJ_Dataset_400.txt
 GoCJ_Dataset_500.txt
+GoCJ_Dataset_600.txt
+GoCJ_Dataset_700.txt
+GoCJ_Dataset_800.txt
+GoCJ_Dataset_900.txt
+GoCJ_Dataset_1000.txt
 ```
 
 Jika folder dataset belum tersedia pada salinan lokal, salin sekali dari proyek sebelumnya:
@@ -156,41 +161,20 @@ Pada laptop lain, siapkan JDK 21, Maven pada PATH, serta dependensi CloudSim 7.0
 
 ## 7. Menjalankan simulasi
 
-README ini berada di folder lokal `soka-taskscheduling1/TASK_SCHEDULING_METAHEURISTIK_SOKA_KEL5`. Perintah demo berikut memakai kode dan script yang sudah disiapkan pada repository khusus `Kelompok5_SOKA_Metaheuristik`. Kelima foto di bagian dokumentasi ditampilkan langsung dari file WhatsApp dalam folder lokal ini.
-
-
-Buka PowerShell dan jalankan:
+Hasil dan screenshot 100-1000 sudah tersedia. Untuk menjalankan ulang seluruh rentang ke folder terpisah:
 
 ```powershell
 cd "C:\Users\TIARA F.A\Kelompok5_SOKA_Metaheuristik"
-.\run-metaheuristik.ps1
+.\run-metaheuristik.ps1 -StartTasks 100 -EndTasks 1000 -OutputDirectory experiments/new-100-1000
 ```
 
-Untuk sekaligus menyimpan log terminal:
+Eksekusi penuh berakhir dengan `SELESAI: 180 run | 60 ringkasan | 20 validasi CloudSim LULUS`. Script memakai Maven mode quiet. Folder keluaran baru terpisah dari dokumentasi yang sudah ada; menjalankan ulang ke folder sama menimpa hasil folder itu.
 
-```powershell
-.\run-metaheuristik.ps1 2>&1 | Tee-Object -FilePath simulation-output.txt
-```
-
-Pada laptop dengan Java, Maven, dan dependensi yang sudah disiapkan, alternatif perintah dari root repository:
-
-```powershell
-mvn -q compile exec:java '-Dexec.mainClass=soka.Main'
-```
-
-Tanpa argumen, `soka.Main` menjalankan seluruh ukuran 100-500 task. Argumen `--full` juga memilih rentang yang sama. Demo kecil tersedia melalui `./run-metaheuristik.ps1 -Tasks 10`.
-
-Eksekusi normal berakhir dengan:
-
-```text
-SELESAI: 90 run | 30 ringkasan | 10 validasi CloudSim LULUS
-```
-
-Script memakai Maven mode quiet sehingga pesan `BUILD SUCCESS` tidak ditampilkan. Menjalankan ulang menimpa CSV dan laporan pembagian; log ditimpa jika menggunakan perintah penyimpanan log.
+Tanpa opsi, script tetap menjalankan 100-500. Untuk lanjutan saja gunakan `-StartTasks 500 -EndTasks 1000 -OutputDirectory experiments/500-1000`.
 
 ## 8. Membaca output dan pembagian task
 
-Output diurutkan berdasarkan **100 -> 200 -> 300 -> 400 -> 500 task**. Pada setiap ukuran, urutannya adalah:
+Output diurutkan berdasarkan **100 -> 200 -> 300 -> 400 -> 500 -> 600 -> 700 -> 800 -> 900 -> 1000 task**. Pada setiap ukuran, urutannya adalah:
 
 1. Pembagian task algoritma ABC per host dan VM.
 2. Hasil validasi CloudSim untuk ABC.
@@ -213,7 +197,7 @@ Tabel pembagian terminal memuat:
 
 Pembagian terminal memakai **bobot 0.5/0.5, run ketiga, seed 1002**. Tabel perbandingan metrik memakai **rata-rata dan standar deviasi dari tiga run**. Keduanya menjelaskan hasil yang berbeda: satu pemetaan tertentu dan ringkasan beberapa pemetaan.
 
-Untuk daftar task lengkap pada pemetaan terminal, buka [folder task-distribution](task-distribution). Contoh: [pembagian ABC 100 task](task-distribution/100-ABC-balanced-run3.txt). File diurutkan per host dan VM; urutan ID task pada setiap VM menunjukkan urutan antrean.
+Untuk daftar task lengkap pada pemetaan terminal, buka [folder task-distribution](task-distribution). Contoh: [pembagian ABC 100 task](experiments/100-1000/task-distribution/100-ABC-balanced-run3.txt). File diurutkan per host dan VM; urutan ID task pada setiap VM menunjukkan urutan antrean.
 
 ### Contoh nyata pembagian 100 task
 
@@ -239,19 +223,20 @@ Baris `Total pembagian: 100/100` menunjukkan seluruh task sudah mendapat VM. Kol
 
 ## 9. Memeriksa file hasil dan validasi
 
-| File | Isi |
+| File rekap lengkap | Isi |
 |---|---|
-| [results.csv](results.csv) | 90 baris metrik individual, di luar header |
-| [summary.csv](summary.csv) | 30 ringkasan rata-rata dan standar deviasi sampel |
-| [task-assignments.csv](task-assignments.csv) | 27.000 penempatan task untuk seluruh 90 run |
-| [task-distribution/](task-distribution/) | 10 laporan pembagian lengkap per VM untuk bobot seimbang, run ketiga |
-| [simulation-output.txt](simulation-output.txt) | Log simulasi tersimpan |
+| [results.csv](experiments/100-1000/results.csv) | 180 run |
+| [summary.csv](experiments/100-1000/summary.csv) | 60 ringkasan rata-rata dan standar deviasi sampel |
+| [task-assignments.csv](experiments/100-1000/task-assignments.csv) | 99.000 penempatan task |
+| [task-distribution/](experiments/100-1000/task-distribution/) | 20 laporan lengkap per VM |
+| [Log awal](simulation-output.txt) | Eksekusi 100-500 |
+| [Log lanjutan](experiments/500-1000/simulation-output.txt) | Eksekusi 500-1000 |
 
-`task-assignments.csv` memuat ukuran dataset, algoritma, bobot, run, seed, ID task, MI, host, VM, MIPS, posisi antrean, waktu mulai, durasi, dan waktu selesai. Waktu antrean dihitung relatif awal pekerjaan; bukan timestamp laptop atau event CloudSim mentah.
+Rekap menggabungkan hasil dua eksekusi, bukan satu eksekusi baru. Ukuran 500 dihitung sekali. CSV di root tetap hasil 100-500.
 
-Validasi CloudSim memeriksa jumlah task selesai dan kesesuaian makespan analitis dengan toleransi 0.01 detik. Validasi dilakukan pada run ketiga dan bobot 0.5/0.5 untuk setiap ukuran serta algoritma. Utilisasi dan waiting time dihitung secara analitis.
+Validasi terpilih memakai run ketiga, bobot seimbang, untuk dua algoritma di sepuluh ukuran: 20 validasi. Jumlah task selesai harus sesuai dan selisih makespan analitis maksimal 0.01 detik. Utilisasi dan waiting time dihitung secara analitis. Waktu hasil adalah detik model simulasi, bukan waktu program berjalan di laptop.
 
-## 10. Hasil eksperimen 100-500 task
+## 10. Hasil eksperimen 100-1000 task
 
 ### Hasil makespan menurut jumlah task
 
@@ -264,6 +249,11 @@ Bobot 0.5/0.5, rata-rata +/- standar deviasi dari tiga run. Nilai dalam detik si
 | 300 | 7390.333 +/- 102.539 | 7154.667 +/- 33.501 |
 | 400 | 9197.833 +/- 102.343 | 8967.333 +/- 55.139 |
 | 500 | 11656.500 +/- 195.581 | 11432.667 +/- 340.860 |
+| 600 | 14701.500 +/- 188.448 | 14379.667 +/- 166.920 |
+| 700 | 16191.667 +/- 195.720 | 15056.000 +/- 72.762 |
+| 800 | 18343.667 +/- 799.569 | 17278.500 +/- 271.932 |
+| 900 | 22402.333 +/- 267.317 | 21334.000 +/- 87.727 |
+| 1000 | 25230.500 +/- 974.729 | 22867.333 +/- 161.636 |
 
 Contoh hasil **500 task, bobot 0.5/0.5**, rata-rata +/- standar deviasi sampel dari tiga run:
 
@@ -272,9 +262,9 @@ Contoh hasil **500 task, bobot 0.5/0.5**, rata-rata +/- standar deviasi sampel d
 | ABC | 11656.500 +/- 195.581 | 93.855 +/- 1.019 | 5376.000 +/- 29.358 |
 | CS | 11432.667 +/- 340.860 | 95.397 +/- 2.193 | 5353.512 +/- 12.836 |
 
-Hasil aktif telah menghasilkan 90 run, 30 ringkasan, dan 10 validasi yang lolos. Pada contoh ini CS memiliki makespan rata-rata lebih rendah; tiga pengulangan belum cukup untuk menyatakan keunggulan universal. Eksperimen tidak membuktikan solusi optimum global atau mengukur utilisasi CPU hardware. Populasi dan iterasi yang sama tidak menjamin jumlah evaluasi fitness sama.
+Rekap lengkap memuat 180 run, 60 ringkasan, dan 20 validasi terpilih yang lolos. Pada contoh ini CS memiliki makespan rata-rata lebih rendah; tiga pengulangan belum cukup untuk menyatakan keunggulan universal. Eksperimen tidak membuktikan solusi optimum global atau mengukur utilisasi CPU hardware. Populasi dan iterasi yang sama tidak menjamin jumlah evaluasi fitness sama.
 
-## 11. Dokumentasi hasil simulasi 100-500 task
+## 11. Dokumentasi hasil simulasi 100-1000 task
 
 Dokumentasi berikut berasal dari screenshot eksekusi ABC dan Cuckoo Search. Setiap gambar menampilkan pembagian task ke 4 host dan 8 VM, validasi CloudSim, serta perbandingan metrik.
 
@@ -286,7 +276,7 @@ Pembagian per VM memakai **bobot 0.5/0.5, run ketiga, seed 1002**. Tabel metrik 
 
 **Gambar 1.** Hasil penjadwalan 100 task menggunakan ABC dan Cuckoo Search. Tabel menunjukkan jumlah task, beban, dan contoh ID task pada setiap VM. Kedua algoritma menyelesaikan **100/100 task** dan lolos validasi CloudSim. Tabel bagian bawah membandingkan makespan, utilisasi, dan waiting time.
 
-Daftar ID task lengkap: [ABC 100 task](task-distribution/100-ABC-balanced-run3.txt) dan [CS 100 task](task-distribution/100-CS-balanced-run3.txt).
+Daftar ID task lengkap: [ABC 100 task](experiments/100-1000/task-distribution/100-ABC-balanced-run3.txt) dan [CS 100 task](experiments/100-1000/task-distribution/100-CS-balanced-run3.txt).
 
 ### 11.2. Simulasi 200 task
 
@@ -294,7 +284,7 @@ Daftar ID task lengkap: [ABC 100 task](task-distribution/100-ABC-balanced-run3.t
 
 **Gambar 2.** Hasil penjadwalan 200 task menggunakan ABC dan Cuckoo Search. Tabel menunjukkan jumlah task, beban, dan contoh ID task pada setiap VM. Kedua algoritma menyelesaikan **200/200 task** dan lolos validasi CloudSim. Tabel bagian bawah membandingkan makespan, utilisasi, dan waiting time.
 
-Daftar ID task lengkap: [ABC 200 task](task-distribution/200-ABC-balanced-run3.txt) dan [CS 200 task](task-distribution/200-CS-balanced-run3.txt).
+Daftar ID task lengkap: [ABC 200 task](experiments/100-1000/task-distribution/200-ABC-balanced-run3.txt) dan [CS 200 task](experiments/100-1000/task-distribution/200-CS-balanced-run3.txt).
 
 ### 11.3. Simulasi 300 task
 
@@ -302,7 +292,7 @@ Daftar ID task lengkap: [ABC 200 task](task-distribution/200-ABC-balanced-run3.t
 
 **Gambar 3.** Hasil penjadwalan 300 task menggunakan ABC dan Cuckoo Search. Tabel menunjukkan jumlah task, beban, dan contoh ID task pada setiap VM. Kedua algoritma menyelesaikan **300/300 task** dan lolos validasi CloudSim. Tabel bagian bawah membandingkan makespan, utilisasi, dan waiting time.
 
-Daftar ID task lengkap: [ABC 300 task](task-distribution/300-ABC-balanced-run3.txt) dan [CS 300 task](task-distribution/300-CS-balanced-run3.txt).
+Daftar ID task lengkap: [ABC 300 task](experiments/100-1000/task-distribution/300-ABC-balanced-run3.txt) dan [CS 300 task](experiments/100-1000/task-distribution/300-CS-balanced-run3.txt).
 
 ### 11.4. Simulasi 400 task
 
@@ -310,7 +300,7 @@ Daftar ID task lengkap: [ABC 300 task](task-distribution/300-ABC-balanced-run3.t
 
 **Gambar 4.** Hasil penjadwalan 400 task menggunakan ABC dan Cuckoo Search. Tabel menunjukkan jumlah task, beban, dan contoh ID task pada setiap VM. Kedua algoritma menyelesaikan **400/400 task** dan lolos validasi CloudSim. Tabel bagian bawah membandingkan makespan, utilisasi, dan waiting time.
 
-Daftar ID task lengkap: [ABC 400 task](task-distribution/400-ABC-balanced-run3.txt) dan [CS 400 task](task-distribution/400-CS-balanced-run3.txt).
+Daftar ID task lengkap: [ABC 400 task](experiments/100-1000/task-distribution/400-ABC-balanced-run3.txt) dan [CS 400 task](experiments/100-1000/task-distribution/400-CS-balanced-run3.txt).
 
 ### 11.5. Simulasi 500 task
 
@@ -318,10 +308,54 @@ Daftar ID task lengkap: [ABC 400 task](task-distribution/400-ABC-balanced-run3.t
 
 **Gambar 5.** Hasil penjadwalan 500 task menggunakan ABC dan Cuckoo Search. Tabel menunjukkan jumlah task, beban, dan contoh ID task pada setiap VM. Kedua algoritma menyelesaikan **500/500 task** dan lolos validasi CloudSim. Tabel bagian bawah membandingkan makespan, utilisasi, dan waiting time.
 
-Daftar ID task lengkap: [ABC 500 task](task-distribution/500-ABC-balanced-run3.txt) dan [CS 500 task](task-distribution/500-CS-balanced-run3.txt).
+Daftar ID task lengkap: [ABC 500 task](experiments/100-1000/task-distribution/500-ABC-balanced-run3.txt) dan [CS 500 task](experiments/100-1000/task-distribution/500-CS-balanced-run3.txt).
+
+### 11.6. Simulasi 600 task
+
+![Pembagian task ABC dan Cuckoo Search untuk 600 task](docs/images/task-scheduling-600.jpeg)
+
+**Gambar 6.** Penjadwalan 600 task dengan ABC dan CS pada 4 host dan 8 VM. Pemetaan memakai bobot 0.5/0.5, run ketiga, seed 1002. Kedua algoritma menyelesaikan **600/600 task** dan lolos validasi CloudSim. Tabel bawah membandingkan metrik dari tiga run.
+
+Daftar ID lengkap: [ABC 600 task](experiments/100-1000/task-distribution/600-ABC-balanced-run3.txt) dan [CS 600 task](experiments/100-1000/task-distribution/600-CS-balanced-run3.txt).
+
+### 11.7. Simulasi 700 task
+
+![Pembagian task ABC dan Cuckoo Search untuk 700 task](docs/images/task-scheduling-700.jpeg)
+
+**Gambar 7.** Penjadwalan 700 task dengan ABC dan CS pada 4 host dan 8 VM. Pemetaan memakai bobot 0.5/0.5, run ketiga, seed 1002. Kedua algoritma menyelesaikan **700/700 task** dan lolos validasi CloudSim. Tabel bawah membandingkan metrik dari tiga run.
+
+Daftar ID lengkap: [ABC 700 task](experiments/100-1000/task-distribution/700-ABC-balanced-run3.txt) dan [CS 700 task](experiments/100-1000/task-distribution/700-CS-balanced-run3.txt).
+
+Bagian akhir tabel metrik terpotong pada screenshot; lihat [summary.csv lengkap](experiments/100-1000/summary.csv).
+
+### 11.8. Simulasi 800 task
+
+![Pembagian task ABC dan Cuckoo Search untuk 800 task](docs/images/task-scheduling-800.jpeg)
+
+**Gambar 8.** Penjadwalan 800 task dengan ABC dan CS pada 4 host dan 8 VM. Pemetaan memakai bobot 0.5/0.5, run ketiga, seed 1002. Kedua algoritma menyelesaikan **800/800 task** dan lolos validasi CloudSim. Tabel bawah membandingkan metrik dari tiga run.
+
+Daftar ID lengkap: [ABC 800 task](experiments/100-1000/task-distribution/800-ABC-balanced-run3.txt) dan [CS 800 task](experiments/100-1000/task-distribution/800-CS-balanced-run3.txt).
+
+### 11.9. Simulasi 900 task
+
+![Pembagian task ABC dan Cuckoo Search untuk 900 task](docs/images/task-scheduling-900.jpeg)
+
+**Gambar 9.** Penjadwalan 900 task dengan ABC dan CS pada 4 host dan 8 VM. Pemetaan memakai bobot 0.5/0.5, run ketiga, seed 1002. Kedua algoritma menyelesaikan **900/900 task** dan lolos validasi CloudSim. Tabel bawah membandingkan metrik dari tiga run.
+
+Daftar ID lengkap: [ABC 900 task](experiments/100-1000/task-distribution/900-ABC-balanced-run3.txt) dan [CS 900 task](experiments/100-1000/task-distribution/900-CS-balanced-run3.txt).
+
+Bagian akhir tabel metrik terpotong pada screenshot; lihat [summary.csv lengkap](experiments/100-1000/summary.csv).
+
+### 11.10. Simulasi 1000 task
+
+![Pembagian task ABC dan Cuckoo Search untuk 1000 task](docs/images/task-scheduling-1000.jpeg)
+
+**Gambar 10.** Penjadwalan 1000 task dengan ABC dan CS pada 4 host dan 8 VM. Pemetaan memakai bobot 0.5/0.5, run ketiga, seed 1002. Kedua algoritma menyelesaikan **1000/1000 task** dan lolos validasi CloudSim. Tabel bawah membandingkan metrik dari tiga run.
+
+Daftar ID lengkap: [ABC 1000 task](experiments/100-1000/task-distribution/1000-ABC-balanced-run3.txt) dan [CS 1000 task](experiments/100-1000/task-distribution/1000-CS-balanced-run3.txt).
 
 ## 12. Penanganan kendala
 
-Jika Java/Maven tidak ditemukan, periksa lokasi tool pada `run-metaheuristik.ps1` atau gunakan instalasi pada PATH. Jika dependensi CloudSim tidak ditemukan, pastikan versi 7.0.1 tersedia pada repositori Maven yang dipakai. Jika dataset tidak ditemukan, pastikan kelima file 100-500 tersedia. Jika validasi gagal, periksa log sebelum menggunakan hasil untuk demo.
+Jika Java/Maven tidak ditemukan, periksa lokasi tool pada `run-metaheuristik.ps1` atau gunakan instalasi pada PATH. Jika dependensi CloudSim tidak ditemukan, pastikan versi 7.0.1 tersedia pada repositori Maven yang dipakai. Jika dataset tidak ditemukan, pastikan sepuluh file 100-1000 tersedia. Jika validasi gagal, periksa log sebelum menggunakan hasil untuk demo.
 
-README ini khusus demo 100-500 task. Hasil, screenshot, dan rekap lanjutan 600-1000 tetap disimpan terpisah dan tidak dihapus.
+README ini mendokumentasikan hasil lengkap 100-1000 task yang sudah dijalankan. Hasil tahap awal dan lanjutan tetap tersimpan terpisah.
