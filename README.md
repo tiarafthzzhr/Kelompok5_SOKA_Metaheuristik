@@ -2,7 +2,7 @@
 
 ## Tujuan
 
-Mengimplementasikan dan membandingkan ABC serta CS untuk memetakan task ke VM heterogen. Optimasi mencari makespan rendah dan utilisasi tinggi. Waktu tunggu dilaporkan sebagai metrik tambahan dan tidak dimasukkan langsung ke fungsi fitness.
+Mengimplementasikan dan membandingkan ABC serta CS untuk memetakan task ke VM heterogen. Optimasi mencari makespan rendah dan utilisasi tinggi. 
 
 ## Arsitektur dan alur sistem
 
