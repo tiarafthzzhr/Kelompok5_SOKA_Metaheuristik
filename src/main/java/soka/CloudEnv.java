@@ -7,7 +7,7 @@ import org.cloudbus.cloudsim.provisioners.*;
 
 public class CloudEnv {
     public static final int DATACENTERS = 1;
-    public static final int HOSTS_PER_DATACENTER = 2;
+    public static final int HOSTS_PER_DATACENTER = 4;
     public static final int VMS_PER_HOST = 2;
     public static final double[] VM_MIPS = createVmMips();
 

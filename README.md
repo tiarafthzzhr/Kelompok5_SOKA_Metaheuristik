@@ -31,31 +31,97 @@ Datacenter DC_0
 |   +-- VM #0:  500 MIPS,  512 MB RAM
 |   +-- VM #1: 1000 MIPS, 1024 MB RAM
 +-- Host #1
-    +-- VM #2:  500 MIPS,  512 MB RAM
-    +-- VM #3: 1000 MIPS, 1024 MB RAM
+|   +-- VM #2:  500 MIPS,  512 MB RAM
+|   +-- VM #3: 1000 MIPS, 1024 MB RAM
++-- Host #2
+|   +-- VM #4:  500 MIPS,  512 MB RAM
+|   +-- VM #5: 1000 MIPS, 1024 MB RAM
++-- Host #3
+    +-- VM #6:  500 MIPS,  512 MB RAM
+    +-- VM #7: 1000 MIPS, 1024 MB RAM
 ```
 
 Pencarian solusi dilakukan oleh kode algoritma Java, kemudian pemetaan terpilih dikirim ke CloudSim untuk validasi. Host dan VM di sini merupakan entitas simulasi.
 
 ## Menjalankan
 
-Kode Java berada langsung di folder `src/main/java/soka` repository ini.
+Kode Java berada di `src/main/java/soka`. Buka PowerShell, lalu salin seluruh blok perintah berikut untuk menjalankan pada laptop yang memiliki tool dari proyek sebelumnya.
 
-Siapkan JDK 21, Maven, dan dependensi CloudSim 7.0.1 di repositori Maven lokal. Dari folder utama repository jalankan:
+### 1. Menjalankan pada laptop Tiara
+
+Perintah ini menggunakan JDK 21, Maven, dan repositori dependensi yang sudah disiapkan di proyek `soka-taskscheduling1`:
 
 ```powershell
+$proyekLama = "C:\Users\TIARA F.A\soka-taskscheduling1"
+
+$env:JAVA_HOME = "$proyekLama\.tools\jdk-21.0.12.1+1"
+$env:Path = "$env:JAVA_HOME\bin;$env:Path"
+
+cd "C:\Users\TIARA F.A\Kelompok5_SOKA_Metaheuristik"
+
+& "$proyekLama\.tools\apache-maven-3.9.9\bin\mvn.cmd" `
+  -s "$proyekLama\.vscode\maven-settings.xml" `
+  clean compile exec:java '-Dexec.mainClass=soka.Main'
+```
+
+Pastikan folder `GoCJ Google Cloud Jobs Dataset` ada di folder utama repository metaheuristik. Program membutuhkan file `GoCJ_Dataset_100.txt`, `GoCJ_Dataset_200.txt`, dan seterusnya hingga `GoCJ_Dataset_1000.txt`. Jika folder belum tersedia, salin dari proyek sebelumnya:
+
+```powershell
+Copy-Item "C:\Users\TIARA F.A\soka-taskscheduling1\GoCJ Google Cloud Jobs Dataset" `
+  -Destination "C:\Users\TIARA F.A\Kelompok5_SOKA_Metaheuristik" -Recurse
+```
+
+Langkah penyalinan dataset hanya diperlukan jika folder tersebut belum ada. Dataset boleh tetap disimpan lokal tanpa diunggah ke GitHub.
+
+### 2. Menjalankan sekaligus menyimpan log
+
+Setelah mengatur Java dan masuk ke folder repository seperti langkah pertama, gunakan:
+
+```powershell
+& "$proyekLama\.tools\apache-maven-3.9.9\bin\mvn.cmd" `
+  -s "$proyekLama\.vscode\maven-settings.xml" `
+  clean compile exec:java '-Dexec.mainClass=soka.Main' 2>&1 |
+  Tee-Object -FilePath simulation-output.txt
+```
+
+### 3. Menjalankan pada laptop lain
+
+Siapkan JDK 21 dan Maven pada PATH, serta instal dependensi CloudSim 7.0.1 ke repositori Maven lokal yang digunakan. Sediakan dataset di folder utama repository, lalu jalankan dari folder tersebut:
+
+```powershell
+java -version
+mvn -version
 mvn clean compile exec:java '-Dexec.mainClass=soka.Main'
 ```
 
-Dataset dibaca dari `GoCJ Google Cloud Jobs Dataset/GoCJ_Dataset_<jumlah>.txt` di folder utama repository. Jika dataset tidak disertakan saat push, sediakan folder tersebut secara lokal sebelum menjalankan. Eksekusi menimpa `results.csv` dan `summary.csv`. Untuk menyimpan log terminal:
+Lokasi `.tools` pada langkah pertama khusus lingkungan laptop Tiara dan tidak ikut tersedia setelah clone repository.
+
+### 4. Memeriksa hasil
+
+Program menjalankan ABC dan Cuckoo Search untuk 100-1000 task dengan tiga skenario bobot dan tiga pengulangan. Eksekusi lengkap menghasilkan 180 run, 60 ringkasan, dan 20 validasi CloudSim. Terminal menampilkan `BUILD SUCCESS` jika eksekusi Maven berhasil.
+
+Hasil tersimpan di folder utama repository:
+
+- `results.csv`: metrik setiap run.
+- `summary.csv`: rata-rata dan standar deviasi.
+- `simulation-output.txt`: log terminal jika menggunakan perintah penyimpanan log di atas.
+
+Menjalankan ulang menimpa CSV hasil sebelumnya. Perintah penyimpanan log juga menimpa log sebelumnya. Nilai waktu dalam hasil adalah waktu model simulasi, bukan waktu tunggu di terminal.
+
+### 5. Mengunggah perubahan README ke GitHub
+
+Jalankan sendiri setelah menyimpan perubahan README:
 
 ```powershell
-mvn exec:java '-Dexec.mainClass=soka.Main' 2>&1 | Tee-Object simulation-output.txt
+cd "C:\Users\TIARA F.A\Kelompok5_SOKA_Metaheuristik"
+git add README.md
+git commit -m "Lengkapi panduan menjalankan metaheuristik"
+git push origin main
 ```
 
 ## Konfigurasi eksperimen
 
-- Simulasi CloudSim: 1 datacenter, 2 host, 2 VM per host (4 VM).
+- Simulasi CloudSim: 1 datacenter, 4 host, 2 VM per host (8 VM).
 - Setiap host: 2 PE x 1000 MIPS, RAM 16384 MB. VM per host: 500 MIPS/512 MB dan 1000 MIPS/1024 MB.
 - Dataset: `GoCJ Google Cloud Jobs Dataset/GoCJ_Dataset_<jumlah>.txt`, 100 hingga 1000 task dengan kenaikan 100.
 - Task independen, tersedia sejak awal, non-preemptive, antrean serial per VM (SpaceShared).
@@ -79,14 +145,14 @@ Makespan adalah maksimum total durasi task pada satu VM. Utilisasi adalah total 
 
 ### Representasi solusi
 
-Contoh untuk enam task dan empat VM:
+Contoh untuk enam task dan delapan VM:
 
 ```text
 Task    : 0  1  2  3  4  5
 Mapping : 2  0  3  1  2  3
 ```
 
-Task 0 dan 4 diproses VM 2, task 1 diproses VM 0, dan seterusnya. Setiap indeks mapping berada pada rentang 0 sampai 3. Algoritma mengubah penempatan task; urutan task pada VM mengikuti urutan dataset.
+Task 0 dan 4 diproses VM 2, task 1 diproses VM 0, dan seterusnya. Contoh ini hanya memakai sebagian dari delapan VM. Setiap indeks mapping berada pada rentang 0 sampai 7. Algoritma mengubah penempatan task; urutan task pada VM mengikuti urutan dataset.
 
 ### Tahapan Artificial Bee Colony
 
@@ -123,16 +189,16 @@ Nilai fitness yang lebih kecil menunjukkan solusi lebih baik untuk pasangan bobo
 
 ## Hasil terverifikasi
 
-Eksekusi berhasil menghasilkan 180 run dan 60 ringkasan. Validasi CloudSim sebanyak 20 kali (run ketiga, bobot seimbang, setiap ukuran dan algoritma) memeriksa jumlah task selesai dan kecocokan makespan analitis dengan toleransi 0.01 detik. Ketidaksesuaian menghentikan program. Utilisasi dan waiting time dihitung secara analitis.
+Eksekusi ulang pada 16 November 2026 dengan 4 host dan 8 VM berhasil menghasilkan 180 run dan 60 ringkasan. Hasil 4 VM sebelumnya disimpan di folder `archive/`. Validasi CloudSim sebanyak 20 kali (run ketiga, bobot seimbang, setiap ukuran dan algoritma) memeriksa jumlah task selesai dan kecocokan makespan analitis dengan toleransi 0.01 detik. Ketidaksesuaian menghentikan program. Utilisasi dan waiting time dihitung secara analitis.
 
 Contoh hasil 1000 task, bobot 0.5/0.5, rata-rata +/- standar deviasi sampel dari 3 run:
 
 | Algoritma | Makespan (detik) | Utilisasi (%) | Waiting time (detik) |
 |---|---:|---:|---:|
-| ABC | 45351.167 +/- 997.529 | 96.282 +/- 1.388 | 21287.445 +/- 163.309 |
-| CS | 43569.667 +/- 150.054 | 99.311 +/- 0.191 | 21046.883 +/- 89.493 |
+| ABC | 25230.500 +/- 974.729 | 88.713 +/- 2.457 | 10819.594 +/- 205.021 |
+| CS | 22867.333 +/- 161.636 | 95.271 +/- 0.446 | 10555.742 +/- 34.914 |
 
-Pada konfigurasi contoh ini CS menghasilkan makespan rata-rata lebih rendah. Tiga pengulangan belum cukup untuk menyatakan keunggulan universal. Hasil ini memakai 4 VM; jangan dicampur dengan hasil arsip eksperimen bertopologi berbeda.
+Pada konfigurasi contoh ini CS menghasilkan makespan rata-rata lebih rendah. Tiga pengulangan belum cukup untuk menyatakan keunggulan universal. Hasil ini memakai 8 VM; jangan dicampur dengan hasil arsip eksperimen bertopologi berbeda.
 
 ## Membaca keluaran
 
