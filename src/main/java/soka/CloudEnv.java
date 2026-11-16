@@ -6,6 +6,11 @@ import org.cloudbus.cloudsim.core.CloudSim;
 import org.cloudbus.cloudsim.provisioners.*;
 
 public class CloudEnv {
+    public static final boolean IMAGE_INFRASTRUCTURE = Boolean.getBoolean("soka.infrastructure.image");
+    public static List<String> lastPlacement = new ArrayList<>();
+    public static int hostPes(int host) { return IMAGE_INFRASTRUCTURE ? 1 : 2; }
+    public static int hostMips(int host) { return IMAGE_INFRASTRUCTURE && host >= 2 ? 2000 : 1000; }
+    public static int hostRam(int host) { return IMAGE_INFRASTRUCTURE ? (host < 2 ? 2048 : 4096) : 16384; }
     public static final int DATACENTERS = 1;
     public static final int HOSTS_PER_DATACENTER = 4;
     public static final int VMS_PER_HOST = 2;
@@ -30,7 +35,7 @@ public class CloudEnv {
         double[] mips = new double[DATACENTERS * HOSTS_PER_DATACENTER * VMS_PER_HOST];
         for (int i = 0; i < mips.length; i++) {
             // Each host contains one small and one large VM.
-            mips[i] = i % VMS_PER_HOST < VMS_PER_HOST / 2 ? 500 : 1000;
+            mips[i] = IMAGE_INFRASTRUCTURE ? (i < 4 ? 500 : 1000) : (i % VMS_PER_HOST == 0 ? 500 : 1000);
         }
         return mips;
     }
@@ -43,11 +48,11 @@ public class CloudEnv {
             List<Host> hosts = new ArrayList<>();
             for (int h = 0; h < HOSTS_PER_DATACENTER; h++) {
                 List<Pe> pes = new ArrayList<>();
-                for (int pe = 0; pe < VMS_PER_HOST; pe++) {
-                    pes.add(new Pe(pe, new PeProvisionerSimple(1000)));
+                for (int pe = 0; pe < hostPes(h); pe++) {
+                    pes.add(new Pe(pe, new PeProvisionerSimple(hostMips(h))));
                 }
                 hosts.add(new Host(d * HOSTS_PER_DATACENTER + h,
-                        new RamProvisionerSimple(16384), new BwProvisionerSimple(10000),
+                        new RamProvisionerSimple(hostRam(h)), new BwProvisionerSimple(10000),
                         1_000_000, pes, new VmSchedulerTimeShared(pes)));
             }
             DatacenterCharacteristics dc = new DatacenterCharacteristics(
@@ -66,7 +71,23 @@ public class CloudEnv {
             new Datacenter("DC_" + d, dc, policy, new LinkedList<Storage>(), 0);
         }
 
-        DatacenterBroker broker = new DatacenterBroker("Broker");
+        lastPlacement = new ArrayList<>();
+        DatacenterBroker broker = new DatacenterBroker("Broker") {
+            @Override
+            protected void submitCloudlets() {
+                if (getGuestsCreatedList().size() != VM_MIPS.length)
+                    throw new IllegalStateException("Tidak semua VM berhasil dibuat");
+                for (Vm vm : this.<Vm>getGuestsCreatedList()) {
+                    Host host = (Host) vm.getHost();
+                    if (host.getId() != vm.getId() / VMS_PER_HOST)
+                        throw new IllegalStateException("Placement VM tidak sesuai");
+                    lastPlacement.add(String.format(java.util.Locale.US, "%d,%d,%.0f,%d,%d,%.0f,%d",
+                            host.getId(), host.getNumberOfPes(), host.getGuestScheduler().getPeCapacity(),
+                            host.getGuestRamProvisioner().getRam(), vm.getId(), vm.getMips(), vm.getRam()));
+                }
+                super.submitCloudlets();
+            }
+        };
 
         // VM
         List<Vm> vms = new ArrayList<>();

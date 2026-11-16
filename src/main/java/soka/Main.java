@@ -16,12 +16,13 @@ public class Main {
     }
 
     public static void main(String[] args) throws Exception {
-        if (args.length > 0 && !args[0].equals("--full") && !args[0].equals("--range")) {
+        if (args.length > 0 && !args[0].equals("--full") && !args[0].equals("--range") && !args[0].equals("--image-range")) {
             Demo.run(Integer.parseInt(args[0]));
             return;
         }
         int first = 100, last = 500;
-        if (args.length > 0 && args[0].equals("--range")) {
+        if (args.length > 0 && (args[0].equals("--range") || args[0].equals("--image-range"))) {
+            if (args[0].equals("--image-range")) System.setProperty("soka.infrastructure.image", "true");
             if (args.length != 4) throw new IllegalArgumentException("Usage: --range first last output-directory");
             first = Integer.parseInt(args[1]);
             last = Integer.parseInt(args[2]);
@@ -41,6 +42,11 @@ public class Main {
         System.out.println("TASK SCHEDULING METAHEURISTIK - ABC DAN CUCKOO SEARCH");
         System.out.printf("1 datacenter | %d host | %d VM per host | total %d VM%n",
                 CloudEnv.HOSTS_PER_DATACENTER, CloudEnv.VMS_PER_HOST, mips.length);
+        System.out.println("Profil: " + (CloudEnv.IMAGE_INFRASTRUCTURE ? "SESUAI GAMBAR - HOST HETEROGEN" : "SEBELUMNYA - HOST SERAGAM"));
+        for (int h = 0; h < CloudEnv.HOSTS_PER_DATACENTER; h++) {
+            System.out.printf("Host H%d: %d PE x %d MIPS | RAM %d MB | BW 10000 | VM V%d=%.0f, V%d=%.0f MIPS%n",
+                    h, CloudEnv.hostPes(h), CloudEnv.hostMips(h), CloudEnv.hostRam(h), h * 2, mips[h * 2], h * 2 + 1, mips[h * 2 + 1]);
+        }
         System.out.printf("%d-%d task | 3 bobot | 3 run | seed 1000-1002 | populasi 30 | iterasi 100%n", first, last);
         System.out.println("Folder hasil: " + output.toAbsolutePath().normalize());
         System.out.println("Task T1 = baris pertama dataset. Host dan VM memakai ID mulai 0.");
@@ -153,6 +159,11 @@ public class Main {
 
     static void validate(String algo, int[] map, List<Long> lengths, double[] mi, double[] mips) throws Exception {
         List<Cloudlet> done = CloudEnv.simulate(map, lengths);
+        List<String> evidence = new ArrayList<>();
+        evidence.add("host_id,host_pes,host_mips_per_pe,host_ram_mb,vm_id,vm_mips,vm_ram_mb");
+        evidence.addAll(CloudEnv.lastPlacement);
+        if (evidence.size() != 9) throw new IllegalStateException("Bukti placement tidak lengkap");
+        Files.write(output.resolve("topology-observed.csv"), evidence);
         double start = done.stream().mapToDouble(Cloudlet::getExecStartTime).min().orElseThrow();
         double finish = done.stream().mapToDouble(Cloudlet::getExecFinishTime).max().orElseThrow();
         double expected = Metrics.makespan(map, mi, mips);

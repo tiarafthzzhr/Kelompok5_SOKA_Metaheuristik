@@ -1,0 +1,30 @@
+ABC | 100 task | bobot 0.5/0.5 | run 3 | seed 1002
+T1 = baris pertama dataset. Urutan ID di setiap VM = urutan eksekusi antrean.
+
+Host H0 -> VM V0 | 500 MIPS | 10 task | beban 2349.000 s
+  T18, T24, T33, T43, T44, T59, T77, T78, T91, T96
+
+Host H0 -> VM V1 | 500 MIPS | 14 task | beban 2075.000 s
+  T7, T10, T14, T20, T28, T32, T38, T42, T53, T73, T75, T81
+  T82, T90
+
+Host H1 -> VM V2 | 500 MIPS | 7 task | beban 2333.000 s
+  T1, T15, T17, T25, T74, T84, T99
+
+Host H1 -> VM V3 | 500 MIPS | 12 task | beban 1852.000 s
+  T4, T13, T30, T45, T48, T50, T60, T61, T72, T88, T95, T98
+
+Host H2 -> VM V4 | 1000 MIPS | 13 task | beban 2252.500 s
+  T2, T3, T5, T8, T29, T51, T55, T56, T64, T67, T69, T76
+  T89
+
+Host H2 -> VM V5 | 1000 MIPS | 16 task | beban 2399.500 s
+  T6, T12, T19, T23, T31, T37, T49, T57, T62, T80, T83, T85
+  T86, T92, T93, T97
+
+Host H3 -> VM V6 | 1000 MIPS | 10 task | beban 2248.000 s
+  T9, T22, T34, T35, T36, T39, T41, T47, T52, T66
+
+Host H3 -> VM V7 | 1000 MIPS | 18 task | beban 2305.000 s
+  T11, T16, T21, T26, T27, T40, T46, T54, T58, T63, T65, T68
+  T70, T71, T79, T87, T94, T100
