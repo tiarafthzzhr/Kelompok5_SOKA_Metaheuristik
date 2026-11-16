@@ -1,161 +1,151 @@
 package soka;
 
 import java.io.PrintWriter;
+import java.nio.file.*;
 import java.util.*;
 import org.cloudbus.cloudsim.Cloudlet;
 import soka.algo.*;
 
 public class Main {
-    static double mean(double[] a) { double s = 0; for (double x : a) s += x; return s / a.length; }
+    static double mean(double[] a) { return Arrays.stream(a).average().orElseThrow(); }
     static double std(double[] a) {
-        if (a.length < 2) return 0;
-        double mu = mean(a), s = 0;
-        for (double x : a) s += (x - mu) * (x - mu);
-        return Math.sqrt(s / (a.length - 1));
+        double mu = mean(a), sum = 0;
+        for (double x : a) sum += (x - mu) * (x - mu);
+        return a.length < 2 ? 0 : Math.sqrt(sum / (a.length - 1));
     }
 
     public static void main(String[] args) throws Exception {
-        CloudEnv.validateTopology();
+        if (args.length > 0 && !args[0].equals("--full")) {
+            Demo.run(Integer.parseInt(args[0]));
+            return;
+        }
         Locale.setDefault(Locale.US);
-        org.cloudbus.cloudsim.Log.enable();
-        printTopology();
-
-        double[] vmMips = CloudEnv.VM_MIPS;
-
-        double[][] W = {{0.5, 0.5}, {0.7, 0.3}, {0.3, 0.7}};
-        int RUNS = 3;
-
-        try (PrintWriter runs = new PrintWriter("results.csv");
-             PrintWriter sum = new PrintWriter("summary.csv")) {
-            runs.println("tasks,algo,w1,w2,run,makespan,util,waiting,fitness");
-            sum.println("tasks,algo,w1,w2,runs,mk_mean,mk_std,util_mean,util_std,wait_mean,wait_std,fit_mean,fit_std");
-
-            System.out.println("Pengujian 100-1000 task, 3 run per kombinasi");
-            for (int tasks = 100; tasks <= 1000; tasks += 100) {
-                List<Long> miList = new ArrayList<>();
-                for (String line : java.nio.file.Files.readAllLines(java.nio.file.Path.of("GoCJ Google Cloud Jobs Dataset/GoCJ_Dataset_" + tasks + ".txt"))) {
-                    if (!line.isBlank()) miList.add(Long.parseLong(line.trim()));
-                }
-                if (miList.size() != tasks) throw new IllegalStateException("Jumlah dataset tidak sesuai");
-                double[] mi = new double[miList.size()];
-                for (int i = 0; i < miList.size(); i++) {
-                    mi[i] = Objects.requireNonNull(miList.get(i), "Panjang task tidak boleh null").doubleValue();
-                }
-
-            for (double[] w : W) {
-                List<Scheduler> algos = List.of(new ABC(w[0], w[1], 30, 100, 20), new CuckooSearch(w[0], w[1], 30, 100, 0.25));
-
-                System.out.printf("%n=== %d TASK | Bobot w1=%.1f, w2=%.1f ===%n", tasks, w[0], w[1]);
-
-                StringBuilder summaryTable = new StringBuilder();
-                int algorithmNumber = 0;
-                for (Scheduler s : algos) {
-                    System.out.printf("%n--- ALGORITMA %d/%d: %s | %d task | w1=%.1f, w2=%.1f ---%n",
-                            ++algorithmNumber, algos.size(), s.name(), tasks, w[0], w[1]);
-                    System.out.printf("%-10s %3s %14s %14s %14s %10s%n", "Algoritma", "Run", "Makespan (s)", "Util (%)", "Waiting (s)", "Fitness");
-                    System.out.println("-".repeat(82));
-                    int n = RUNS;
-                    double[] mk = new double[n], ut = new double[n], wt = new double[n], fi = new double[n];
-                    int[] lastMap = null;
-                    for (int r = 0; r < n; r++) {
-                        int[] map = s.schedule(mi, vmMips, new Random(1000 + r));
-                        mk[r] = Metrics.makespan(map, mi, vmMips);
-                        ut[r] = Metrics.utilization(map, mi, vmMips);
-                        wt[r] = Metrics.avgWaiting(map, mi, vmMips);
-                        fi[r] = Metrics.fitness(map, mi, vmMips, w[0], w[1]);
-                        runs.printf("%d,%s,%.1f,%.1f,%d,%.3f,%.3f,%.3f,%.5f%n",
-                                tasks, s.name(), w[0], w[1], r + 1, mk[r], ut[r], wt[r], fi[r]);
-                        System.out.printf("%-10s %3d %14.3f %14.3f %14.3f %10.5f%n", s.name(), r + 1, mk[r], ut[r], wt[r], fi[r]);
-                        lastMap = map;
-                    }
-                    sum.printf("%d,%s,%.1f,%.1f,%d,%.3f,%.3f,%.3f,%.3f,%.3f,%.3f,%.5f,%.5f%n",
-                            tasks, s.name(), w[0], w[1], n, mean(mk), std(mk), mean(ut), std(ut),
-                            mean(wt), std(wt), mean(fi), std(fi));
-                    summaryTable.append(String.format("%-10s %20s %21s %21s %10.5f%n",
-                            s.name(), String.format("%.3f +/- %.3f", mean(mk), std(mk)),
-                            String.format("%.3f +/- %.3f", mean(ut), std(ut)),
-                            String.format("%.3f +/- %.3f", mean(wt), std(wt)), mean(fi)));
-                    System.out.printf("Ringkasan %s: makespan %.2f +/- %.2f s | util %.2f +/- %.2f %% | wait %.2f +/- %.2f s | fit %.5f%n",
-                            s.name(), mean(mk), std(mk), mean(ut), std(ut), mean(wt), std(wt), mean(fi));
-                    if (w == W[0]) validate(s.name(), lastMap, miList, mi, vmMips);
-                    else System.out.println("Validasi CloudSim hanya dijalankan pada bobot 0.5/0.5, run ke-3.");
-                }
-                System.out.println("\nRingkasan 3 pengulangan (rata-rata +/- standar deviasi):");
-                System.out.printf("%-10s %20s %21s %21s %10s%n", "Algoritma", "Makespan (s)", "Util (%)", "Waiting (s)", "Fitness");
-                System.out.println("-".repeat(105));
-                System.out.print(summaryTable);
-            }
-            }
-            System.out.println("Hasil lengkap: results.csv | Ringkasan: summary.csv");
-        }
-        printFinalTopology();
-    }
-
-    static void printFinalTopology() {
         CloudEnv.validateTopology();
-        int totalHosts = CloudEnv.DATACENTERS * CloudEnv.HOSTS_PER_DATACENTER;
-        System.out.println("\n" + "=".repeat(90));
-        System.out.println("SIMULASI SELESAI - RINGKASAN KONFIGURASI TOPOLOGI CLOUDSIM");
-        System.out.println("Algoritma yang dijalankan: Artificial Bee Colony (ABC) dan Cuckoo Search (CS) - metaheuristik.");
-        System.out.printf("%d datacenter -> %d host -> masing-masing %d VM%n",
-                CloudEnv.DATACENTERS, totalHosts, CloudEnv.VMS_PER_HOST);
-        for (int d = 0; d < CloudEnv.DATACENTERS; d++) {
-            System.out.printf("Datacenter DC_%d%n", d);
-            for (int h = 0; h < CloudEnv.HOSTS_PER_DATACENTER; h++) {
-                int host = d * CloudEnv.HOSTS_PER_DATACENTER + h;
-                StringJoiner vmIds = new StringJoiner(", ");
-                for (int v = 0; v < CloudEnv.VMS_PER_HOST; v++) {
-                    vmIds.add("VM #" + (host * CloudEnv.VMS_PER_HOST + v));
+        org.cloudbus.cloudsim.Log.disable();
+        Files.createDirectories(Path.of("task-distribution"));
+        double[] mips = CloudEnv.VM_MIPS;
+        double[][] weights = {{0.5, 0.5}, {0.7, 0.3}, {0.3, 0.7}};
+        System.out.println("=".repeat(94));
+        System.out.println("TASK SCHEDULING METAHEURISTIK - ABC DAN CUCKOO SEARCH");
+        System.out.printf("1 datacenter | %d host | %d VM per host | total %d VM%n",
+                CloudEnv.HOSTS_PER_DATACENTER, CloudEnv.VMS_PER_HOST, mips.length);
+        System.out.println("100-500 task | 3 bobot | 3 run | seed 1000-1002 | populasi 30 | iterasi 100");
+        System.out.println("Task T1 = baris pertama dataset. Host dan VM memakai ID mulai 0.");
+        System.out.println("Durasi = MI/MIPS. Waktu mulai/selesai adalah waktu antrean model, relatif awal task.");
+        System.out.println("Tabel pembagian terminal: bobot 0.5/0.5, run 3; BUKAN gabungan tiga run.");
+        System.out.println("Daftar lengkap semua run: task-assignments.csv. Daftar per VM: task-distribution/.");
+        int validations = 0;
+        try (PrintWriter runs = new PrintWriter("results.csv");
+             PrintWriter summary = new PrintWriter("summary.csv");
+             PrintWriter assignments = new PrintWriter("task-assignments.csv")) {
+            runs.println("tasks,algo,w1,w2,run,makespan,util,waiting,fitness");
+            summary.println("tasks,algo,w1,w2,runs,mk_mean,mk_std,util_mean,util_std,wait_mean,wait_std,fit_mean,fit_std");
+            assignments.println("tasks,algo,w1,w2,run,seed,task_id,mi,host_id,vm_id,vm_mips,queue_position,start_s,duration_s,finish_s");
+            for (int tasks = 100; tasks <= 500; tasks += 100) {
+                Path dataset = Path.of("GoCJ Google Cloud Jobs Dataset/GoCJ_Dataset_" + tasks + ".txt");
+                if (!Files.exists(dataset)) dataset = Path.of("..").resolve(dataset);
+                List<Long> lengths = new ArrayList<>();
+                for (String line : Files.readAllLines(dataset))
+                    if (!line.isBlank()) lengths.add(Long.parseLong(line.trim()));
+                if (lengths.size() != tasks) throw new IllegalStateException("Jumlah dataset tidak sesuai: " + dataset);
+                double[] mi = lengths.stream().mapToDouble(Long::doubleValue).toArray();
+                System.out.println("\n" + "=".repeat(94));
+                System.out.printf("UKURAN %d/5 - %d TASK | dataset: %s%n", tasks / 100, tasks, dataset.getFileName());
+                StringBuilder comparisons = new StringBuilder();
+                for (double[] w : weights) {
+                    for (Scheduler algo : List.of(new ABC(w[0], w[1], 30, 100, 20),
+                            new CuckooSearch(w[0], w[1], 30, 100, 0.25))) {
+                        double[] mk = new double[3], ut = new double[3], wait = new double[3], fit = new double[3];
+                        int[] lastMap = null;
+                        for (int r = 0; r < 3; r++) {
+                            int[] map = algo.schedule(mi, mips, new Random(1000 + r));
+                            checkMapping(map, tasks, mips.length);
+                            mk[r] = Metrics.makespan(map, mi, mips);
+                            ut[r] = Metrics.utilization(map, mi, mips);
+                            wait[r] = Metrics.avgWaiting(map, mi, mips);
+                            fit[r] = Metrics.fitness(map, mi, mips, w[0], w[1]);
+                            runs.printf("%d,%s,%.1f,%.1f,%d,%.3f,%.3f,%.3f,%.5f%n",
+                                    tasks, algo.name(), w[0], w[1], r + 1, mk[r], ut[r], wait[r], fit[r]);
+                            writeAssignments(assignments, algo.name(), w, r + 1, map, mi, mips);
+                            lastMap = map;
+                        }
+                        summary.printf("%d,%s,%.1f,%.1f,3,%.3f,%.3f,%.3f,%.3f,%.3f,%.3f,%.5f,%.5f%n",
+                                tasks, algo.name(), w[0], w[1], mean(mk), std(mk), mean(ut), std(ut),
+                                mean(wait), std(wait), mean(fit), std(fit));
+                        comparisons.append(String.format("%-5s %.1f/%.1f %21s %19s %21s%n", algo.name(), w[0], w[1],
+                                String.format("%.3f +/- %.3f", mean(mk), std(mk)),
+                                String.format("%.3f +/- %.3f", mean(ut), std(ut)),
+                                String.format("%.3f +/- %.3f", mean(wait), std(wait))));
+                        if (w == weights[0]) {
+                            distribution(algo.name(), lastMap, mi, mips);
+                            validate(algo.name(), lastMap, lengths, mi, mips);
+                            validations++;
+                        }
+                    }
                 }
-                System.out.printf("  Host #%d -> %s (jumlah: %d VM)%n",
-                        host, vmIds, CloudEnv.VMS_PER_HOST);
+                System.out.println("\nB. PERBANDINGAN METRIK - rata-rata +/- standar deviasi dari 3 run");
+                System.out.printf("%-5s %-7s %21s %19s %21s%n", "Algo", "Bobot", "Makespan (s)", "Utilisasi (%)", "Waiting (s)");
+                System.out.print(comparisons);
             }
         }
-        System.out.printf("TOTAL: %d datacenter | %d host | %d VM%n",
-                CloudEnv.DATACENTERS, totalHosts, CloudEnv.VM_MIPS.length);
-        System.out.println("SYARAT TOPOLOGI TERPENUHI: 1 datacenter, minimal 2 host, minimal 2 VM per host.");
-        System.out.println("Cloudlet adalah task yang diproses bergantian pada VM, bukan host atau VM tambahan.");
-        System.out.println("Ringkasan ini menunjukkan konfigurasi simulasi CloudSim.");
-        System.out.println("=".repeat(90));
+        System.out.printf("%nSELESAI: 90 run | 30 ringkasan | %d validasi CloudSim LULUS%n", validations);
+        System.out.println("Hasil: results.csv | summary.csv | task-assignments.csv | task-distribution/");
     }
 
-    static void printTopology() {
-        System.out.println("=".repeat(90));
-        System.out.println("SIMULASI PENJADWALAN TASK - CLOUDSIM");
-        System.out.printf("%d datacenter | %d host/datacenter | %d VM/host | total %d host dan %d VM%n",
-                CloudEnv.DATACENTERS, CloudEnv.HOSTS_PER_DATACENTER, CloudEnv.VMS_PER_HOST,
-                CloudEnv.DATACENTERS * CloudEnv.HOSTS_PER_DATACENTER, CloudEnv.VM_MIPS.length);
-        for (int d = 0; d < CloudEnv.DATACENTERS; d++) {
-            System.out.printf("DC_%d%n", d);
-            for (int h = 0; h < CloudEnv.HOSTS_PER_DATACENTER; h++) {
-                int host = d * CloudEnv.HOSTS_PER_DATACENTER + h;
-                int firstVm = host * CloudEnv.VMS_PER_HOST;
-                System.out.printf("  Host #%d -> VM #%d-#%d | %d PE x 1000 MIPS | RAM 16384 MB%n",
-                        host, firstVm, firstVm + CloudEnv.VMS_PER_HOST - 1, CloudEnv.VMS_PER_HOST);
+    static void checkMapping(int[] map, int tasks, int vms) {
+        if (map.length != tasks) throw new IllegalStateException("Jumlah mapping salah");
+        for (int vm : map) if (vm < 0 || vm >= vms) throw new IllegalStateException("Indeks VM salah");
+    }
+
+    static void writeAssignments(PrintWriter out, String algo, double[] w, int run,
+                                 int[] map, double[] mi, double[] mips) {
+        double[] clocks = new double[mips.length];
+        int[] positions = new int[mips.length];
+        for (int i = 0; i < map.length; i++) {
+            int vm = map[i];
+            double duration = mi[i] / mips[vm];
+            out.printf("%d,%s,%.1f,%.1f,%d,%d,%d,%.0f,%d,%d,%.0f,%d,%.3f,%.3f,%.3f%n",
+                    map.length, algo, w[0], w[1], run, 999 + run, i + 1, mi[i],
+                    vm / CloudEnv.VMS_PER_HOST, vm, mips[vm], ++positions[vm], clocks[vm], duration, clocks[vm] + duration);
+            clocks[vm] += duration;
+        }
+    }
+
+    static void distribution(String algo, int[] map, double[] mi, double[] mips) throws Exception {
+        String file = "task-distribution/" + map.length + "-" + algo + "-balanced-run3.txt";
+        System.out.printf("%nA. PEMBAGIAN TASK %s | %d task | bobot 0.5/0.5 | run 3 | seed 1002%n", algo, map.length);
+        System.out.printf("%-6s %-5s %6s %7s %14s  %s%n", "Host", "VM", "MIPS", "Task", "Beban (s)", "Contoh ID task (maks. 6)");
+        double[] busy = Metrics.vmBusyTime(map, mi, mips);
+        int total = 0;
+        try (PrintWriter detail = new PrintWriter(file)) {
+            detail.printf("%s | %d task | bobot 0.5/0.5 | run 3 | seed 1002%n", algo, map.length);
+            detail.println("T1 = baris pertama dataset. Urutan ID di setiap VM = urutan eksekusi antrean.");
+            for (int vm = 0; vm < mips.length; vm++) {
+                List<String> ids = new ArrayList<>();
+                for (int i = 0; i < map.length; i++) if (map[i] == vm) ids.add("T" + (i + 1));
+                int host = vm / CloudEnv.VMS_PER_HOST;
+                total += ids.size();
+                String sample = String.join(", ", ids.subList(0, Math.min(6, ids.size())));
+                if (ids.size() > 6) sample += ", ...";
+                if (ids.isEmpty()) sample = "(kosong)";
+                System.out.printf("H%-5d V%-4d %6.0f %7d %14.3f  %s%n", host, vm, mips[vm], ids.size(), busy[vm], sample);
+                detail.printf("%nHost H%d -> VM V%d | %.0f MIPS | %d task | beban %.3f s%n", host, vm, mips[vm], ids.size(), busy[vm]);
+                for (int offset = 0; offset < ids.size(); offset += 12)
+                    detail.println("  " + String.join(", ", ids.subList(offset, Math.min(offset + 12, ids.size()))));
             }
         }
-        System.out.printf("Setiap host: %d VM x 500 MIPS/512 MB + %d VM x 1000 MIPS/1024 MB%n",
-                CloudEnv.VMS_PER_HOST / 2, CloudEnv.VMS_PER_HOST - CloudEnv.VMS_PER_HOST / 2);
-        System.out.println("Algoritma yang dijalankan: Artificial Bee Colony (ABC) dan Cuckoo Search (CS) - metaheuristik.");
-        System.out.println("Urutan: task 100-1000 -> bobot -> ABC dan CS -> run 1-3");
-        System.out.println("Validasi dan log CloudSim: run ke-3 pada bobot 0.5/0.5 setiap algoritma.");
-        System.out.println("=".repeat(90));
+        System.out.printf("Total pembagian: %d/%d task | seluruh task mendapat tepat satu VM%n", total, map.length);
+        System.out.println("Daftar ID lengkap: " + file);
     }
 
-    static void validate(String name, int[] map, List<Long> miList, double[] mi, double[] vmMips) throws Exception {
-        System.out.printf("%n>>> MULAI VALIDASI CLOUDSIM: %s | %d task | run ke-3 <<<%n", name, mi.length);
-        List<Cloudlet> done = CloudEnv.simulate(map, miList);
-        double minStart = Double.MAX_VALUE, maxFinish = 0;
-        for (Cloudlet c : done) {
-            minStart = Math.min(minStart, c.getExecStartTime());
-            maxFinish = Math.max(maxFinish, c.getExecFinishTime());
-        }
-        double expected = Metrics.makespan(map, mi, vmMips);
-        if (done.size() != mi.length || Math.abs(maxFinish - minStart - expected) > 0.01) {
-            throw new IllegalStateException("Validasi CloudSim gagal untuk " + name);
-        }
-        System.out.printf("   [validasi %s] %d/%d selesai | CloudSim %.2f vs analitis %.2f%n",
-                name, done.size(), mi.length, maxFinish - minStart, Metrics.makespan(map, mi, vmMips));
-        System.out.printf(">>> SELESAI VALIDASI CLOUDSIM: %s <<<%n%n", name);
+    static void validate(String algo, int[] map, List<Long> lengths, double[] mi, double[] mips) throws Exception {
+        List<Cloudlet> done = CloudEnv.simulate(map, lengths);
+        double start = done.stream().mapToDouble(Cloudlet::getExecStartTime).min().orElseThrow();
+        double finish = done.stream().mapToDouble(Cloudlet::getExecFinishTime).max().orElseThrow();
+        double expected = Metrics.makespan(map, mi, mips);
+        if (done.size() != mi.length || Math.abs(finish - start - expected) > 0.01)
+            throw new IllegalStateException("Validasi CloudSim gagal: " + algo);
+        System.out.printf("Validasi CloudSim: LULUS | %d/%d selesai | makespan %.3f s (analitis %.3f s)%n",
+                done.size(), mi.length, finish - start, expected);
     }
 }
