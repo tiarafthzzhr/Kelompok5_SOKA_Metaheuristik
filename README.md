@@ -1,6 +1,6 @@
 # Task Scheduling Cloud dengan Metaheuristik
 
-Implementasi **Artificial Bee Colony (ABC)** dan **Cuckoo Search (CS)** untuk penjadwalan task menggunakan CloudSim 7.0.1. Eksperimen aktif memakai **100, 200, 300, 400, dan 500 task**, dengan **1 datacenter, 4 host, dan 8 VM**.
+Implementasi **Artificial Bee Colony (ABC)** dan **Cuckoo Search (CS)** untuk penjadwalan task menggunakan CloudSim 7.0.1. Dokumentasi eksperimen mencakup **100 sampai 1000 task dengan kenaikan 100**, dengan **1 datacenter, 4 host, dan 8 VM**.
 
 Kode utama: [Main.java](src/main/java/soka/Main.java). Kode algoritma: [ABC.java](src/main/java/soka/algo/ABC.java) dan [CuckooSearch.java](src/main/java/soka/algo/CuckooSearch.java).
 
@@ -44,18 +44,19 @@ Diagram berikut merangkum urutan simulasi. **ABC dan CS dijalankan sebagai dua a
 ```mermaid
 flowchart TD
     START([Mulai eksperimen]) --> CONFIG["1. Siapkan konfigurasi cloud<br/>1 datacenter - 4 host - 8 VM"]
-    CONFIG --> DATA["2. Baca dataset GoCJ<br/>100 ? 200 ? 300 ? 400 ? 500 task"]
+    CONFIG --> DATA["2. Baca dataset GoCJ<br/>100, 200, 300, ..., 1000 task"]
     DATA --> SETUP["3. Untuk setiap ukuran dataset<br/>Uji bobot 0.5/0.5, 0.7/0.3, 0.3/0.7"]
     SETUP --> ABC["4. Jalankan Artificial Bee Colony<br/>3 run - seed 1000, 1001, 1002"]
-    ABC --> ABCMAP["Pemetaan ABC: task ? VM ? host<br/>Hitung metrik dan simpan penempatan"]
+    ABC --> ABCMAP["Pemetaan ABC: task ke VM, VM pada host<br/>Hitung metrik dan simpan penempatan"]
     ABCMAP --> ABCVAL["Validasi ABC di CloudSim<br/>Hanya bobot 0.5/0.5, run ketiga"]
     ABCVAL --> CS["5. Jalankan Cuckoo Search<br/>3 run - seed 1000, 1001, 1002"]
-    CS --> CSMAP["Pemetaan CS: task ? VM ? host<br/>Hitung metrik dan simpan penempatan"]
+    CS --> CSMAP["Pemetaan CS: task ke VM, VM pada host<br/>Hitung metrik dan simpan penempatan"]
     CSMAP --> CSVAL["Validasi CS di CloudSim<br/>Hanya bobot 0.5/0.5, run ketiga"]
-    CSVAL --> REPEAT["6. Lanjutkan bobot dan ukuran berikutnya<br/>Urutan ukuran: 100, 200, 300, 400, 500"]
+    CSVAL --> REPEAT["6. Lanjutkan bobot dan ukuran berikutnya<br/>Urutan ukuran: 100 sampai 1000, kenaikan 100"]
     REPEAT --> OUTPUT["7. Bandingkan ABC dan CS<br/>Makespan - Utilisasi - Waiting time"]
     OUTPUT --> FILES["8. Simpan hasil dan dokumentasi<br/>CSV - pembagian per VM - log - screenshot"]
-    FILES --> END([Selesai: 90 run - 30 ringkasan - 10 validasi])
+    FILES --> MERGE["9. Gabungkan tahap 100-500 dan 500-1000<br/>Ukuran 500 task hanya dihitung sekali"]
+    MERGE --> END([Rekap: 180 run - 60 ringkasan - 20 validasi])
 
     classDef startEnd fill:#0f172a,color:#ffffff,stroke:#0f172a;
     classDef setup fill:#e0f2fe,color:#0c4a6e,stroke:#0284c7;
@@ -66,10 +67,12 @@ flowchart TD
     class CONFIG,DATA,SETUP setup;
     class ABC,ABCMAP,ABCVAL abc;
     class CS,CSMAP,CSVAL cs;
-    class REPEAT,OUTPUT,FILES output;
+    class REPEAT,OUTPUT,FILES,MERGE output;
 ```
 
 **Cara membaca:** untuk setiap ukuran task, program menguji tiga bobot. Pada setiap bobot, ABC dijalankan tiga kali, dilanjutkan CS tiga kali. Setelah itu program melanjutkan bobot berikutnya, lalu ukuran dataset berikutnya. Kotak validasi hanya dijalankan untuk pemetaan run ketiga pada bobot seimbang; tidak ada validasi CloudSim tambahan pada bobot lain. Setiap algoritma menggunakan populasi 30 dan 100 iterasi.
+
+**Pelaksanaan terdiri dari dua tahap:** tahap awal 100-500 (90 run, 10 validasi), lalu lanjutan 500-1000 (108 run, 12 validasi). Rekap memakai 100-400 dari tahap awal dan 500-1000 dari tahap lanjutan agar ukuran 500 tidak terhitung dua kali. Total rekap: **180 run, 60 ringkasan, 20 validasi, 99.000 penempatan task**. Hasil root dan perintah default tetap untuk tahap awal 100-500.
 
 Penjelasan tahap demi tahap tersedia di [Alur eksperimen simulasi](docs/ALUR-EKSPERIMEN.md).
 
@@ -78,7 +81,7 @@ Penjelasan tahap demi tahap tersedia di [Alur eksperimen simulasi](docs/ALUR-EKS
 | Parameter | Nilai |
 |---|---|
 | Algoritma | ABC dan Cuckoo Search |
-| Ukuran dataset | 100, 200, 300, 400, 500 task |
+| Ukuran dataset dokumentasi | 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000 task |
 | Model task | Statis, independen, non-preemptive |
 | Penjadwalan pada VM | SpaceShared, antrean serial |
 | Populasi / iterasi | 30 / 100 |
@@ -86,8 +89,8 @@ Penjelasan tahap demi tahap tersedia di [Alur eksperimen simulasi](docs/ALUR-EKS
 | Parameter CS | pa = 0.25; beta = 1.5; sigma = 0.6966 |
 | Bobot makespan / utilisasi | 0.5/0.5, 0.7/0.3, 0.3/0.7 |
 | Pengulangan | 3; seed 1000, 1001, 1002 |
-| Total run | 5 ukuran x 2 algoritma x 3 bobot x 3 run = 90 |
-| Ringkasan / validasi | 30 ringkasan / 10 validasi CloudSim |
+| Total run rekap | 10 ukuran x 2 algoritma x 3 bobot x 3 run = 180 |
+| Ringkasan / validasi rekap | 60 ringkasan / 20 validasi CloudSim |
 
 ## 4. Cara kerja algoritma dan metrik
 
@@ -133,7 +136,7 @@ C:\Users\TIARA F.A\soka-taskscheduling1\.tools\apache-maven-3.9.9
 C:\Users\TIARA F.A\soka-taskscheduling1\.vscode\maven-settings.xml
 ```
 
-Dataset beban task yang disertakan untuk repository tersedia di [GoCJ Google Cloud Jobs Dataset](GoCJ%20Google%20Cloud%20Jobs%20Dataset/README.md). **Dataset adalah panjang task dalam MI; datacenter, host, dan VM didefinisikan dalam kode CloudEnv.java.** Lima file yang dipakai:
+Dataset beban task yang disertakan untuk repository tersedia di [GoCJ Google Cloud Jobs Dataset](GoCJ%20Google%20Cloud%20Jobs%20Dataset/README.md). **Dataset adalah panjang task dalam MI; datacenter, host, dan VM didefinisikan dalam kode CloudEnv.java.** Sepuluh file yang dipakai untuk dokumentasi lengkap:
 
 ```text
 GoCJ_Dataset_100.txt
@@ -141,6 +144,11 @@ GoCJ_Dataset_200.txt
 GoCJ_Dataset_300.txt
 GoCJ_Dataset_400.txt
 GoCJ_Dataset_500.txt
+GoCJ_Dataset_600.txt
+GoCJ_Dataset_700.txt
+GoCJ_Dataset_800.txt
+GoCJ_Dataset_900.txt
+GoCJ_Dataset_1000.txt
 ```
 
 Jika folder dataset belum tersedia pada salinan lokal, salin sekali dari proyek sebelumnya:
@@ -153,6 +161,19 @@ Copy-Item "C:\Users\TIARA F.A\soka-taskscheduling1\GoCJ Google Cloud Jobs Datase
 Pada laptop lain, siapkan JDK 21, Maven pada PATH, serta dependensi CloudSim 7.0.1 di repositori Maven lokal. Folder tool laptop Tiara tidak ikut tersedia setelah clone.
 
 ## 7. Menjalankan simulasi
+
+**Tahap awal 100-500** memakai perintah default di bawah. Untuk **lanjutan 500-1000** gunakan:
+
+```powershell
+.\run-metaheuristik.ps1 -StartTasks 500 -EndTasks 1000 -OutputDirectory experiments/500-1000
+```
+
+Untuk eksekusi baru seluruh rentang sekaligus ke folder terpisah (opsional, bukan cara menghasilkan rekap yang sudah ada):
+
+```powershell
+.\run-metaheuristik.ps1 -StartTasks 100 -EndTasks 1000 -OutputDirectory experiments/new-100-1000
+```
+
 
 Buka PowerShell dan jalankan:
 
