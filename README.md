@@ -278,9 +278,3 @@ Daftar ID task lengkap: [ABC 400 task](task-distribution/400-ABC-balanced-run3.t
 **Gambar 5.** Hasil penjadwalan 500 task menggunakan ABC dan Cuckoo Search. Tabel menunjukkan jumlah task, beban, dan contoh ID task pada setiap VM. Kedua algoritma menyelesaikan **500/500 task** dan lolos validasi CloudSim. Tabel bagian bawah membandingkan makespan, utilisasi, dan waiting time.
 
 Daftar ID task lengkap: [ABC 500 task](task-distribution/500-ABC-balanced-run3.txt) dan [CS 500 task](task-distribution/500-CS-balanced-run3.txt).
-
-## 12. Penanganan kendala
-
-Jika Java/Maven tidak ditemukan, periksa lokasi tool pada script atau gunakan instalasi pada PATH. Jika dependensi CloudSim tidak ditemukan, pastikan versi 7.0.1 telah tersedia di repositori Maven yang dipakai. Jika dataset tidak ditemukan, pastikan folder dan kelima nama file sesuai. Jika validasi gagal, periksa log sebelum memakai hasil sebagai dokumentasi.
-
-Kode aktif berada di `src/` pada root repository. Subfolder lama `TASK_SCHEDULING_METAHEURISTIK_SOKA_KEL5` tidak digunakan oleh perintah dari root.
