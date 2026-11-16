@@ -183,8 +183,8 @@ Eksperimen menggunakan task statis dan independen, tanpa dependensi antar-task, 
 ## Berkas
 
 - `src/main/java/soka/Main.java`: eksperimen, CSV, tabel terminal, validasi.
-- `src/main/java/soka/algo/ABC.java`: metaheuristik algoritma ABC.
-- `src/main/java/soka/algo/CuckooSearch.java`: metaheuristik algoritma CS.
+- `src/main/java/soka/algo/ABC.java`: metaheuristik ABC .
+- `src/main/java/soka/algo/CuckooSearch.java`: metaheuristik CS .
 - `src/main/java/soka/CloudEnv.java`: topologi dan simulasi CloudSim.
 - `src/main/java/soka/Metrics.java`: fungsi tujuan dan metrik.
 - `results.csv`: hasil seluruh run.
